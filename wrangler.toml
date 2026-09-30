@@ -1,0 +1,15 @@
+name = "bm-calory-tracker"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "./public"
+
+[vars]
+# Google OAuth "Web application" client ID (not secret). See README.md
+GOOGLE_CLIENT_ID = "PASTE_YOUR_CLIENT_ID.apps.googleusercontent.com"
+
+[[kv_namespaces]]
+binding = "DATA"
+id = "PASTE_KV_NAMESPACE_ID"
+preview_id = "PASTE_KV_NAMESPACE_ID"
+
+# Secret (do NOT put here):  npx wrangler pages secret put SESSION_SECRET
+# Local dev: create .dev.vars with  SESSION_SECRET=some-long-random-string

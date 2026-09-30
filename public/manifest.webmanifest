@@ -1,0 +1,11 @@
+{
+  "name": "BM Calory Tracker",
+  "short_name": "BM Calories",
+  "description": "Track calories, macros, steps and workouts. Data stays on your device.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1a17",
+  "theme_color": "#0f1a17",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1a17">
+<meta name="description" content="BM Calory Tracker – free calorie, macro, steps and workout tracker. Your data stays on your device.">
+<title>BM Calory Tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-today" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-1.7.8-3 1.8-4 .3 1.2 1 2 2 2 0-3 .3-5.5 1.2-8z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h12M9 8h6"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-barcode" viewBox="0 0 24 24"><path d="M4 6v12M7 6v12M11 6v12M14 6v12M17 6v12M20 6v12" stroke-width="1.6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></symbol>
+  <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 2 2v9M11 3v7a2 2 0 0 1-2 2M5 3v7a2 2 0 0 0 2 2"/><path d="M17 21V3c-2 1.5-3 4-3 7 0 2 1 3 3 3"/></symbol>
+  <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M3 18h18M6 14a6 6 0 0 1 12 0M12 5v2M4.5 9l1.5 1.5M19.5 9L18 10.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
+  <symbol id="i-cookie" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 4 4 0 0 1-4-4 4 4 0 0 1-5-5z"/><circle cx="9" cy="10" r=".8" fill="currentColor"/><circle cx="14" cy="15" r=".8" fill="currentColor"/><circle cx="8" cy="15" r=".8" fill="currentColor"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+</defs></svg>
+
+<header class="top">
+  <div class="brand"><img src="icon.svg" alt="" width="34" height="34"><div><span class="b1">BM Calory Tracker</span><span class="b2" id="tagline">Eat smart. Move more.</span></div></div>
+  <a class="acct" id="acct" href="#settings"><svg class="i"><use href="#i-user"/></svg><span id="acct-t">Sign in</span></a>
+</header>
+
+<nav class="nav" id="nav" aria-label="Main">
+  <a href="#today" data-view="today"><svg class="i"><use href="#i-today"/></svg><span>Today</span></a>
+  <a href="#add" data-view="add"><svg class="i"><use href="#i-plus"/></svg><span>Add</span></a>
+  <a href="#activity" data-view="activity"><svg class="i"><use href="#i-flame"/></svg><span>Activity</span></a>
+  <a href="#progress" data-view="progress"><svg class="i"><use href="#i-chart"/></svg><span>Progress</span></a>
+  <a href="#history" data-view="history"><svg class="i"><use href="#i-history"/></svg><span>History</span></a>
+  <a href="#settings" data-view="settings"><svg class="i"><use href="#i-gear"/></svg><span>Settings</span></a>
+  <a href="#science" data-view="science"><svg class="i"><use href="#i-book"/></svg><span>Science</span></a>
+</nav>
+
+<div class="datebar" id="datenav">
+  <button class="icon-btn" data-date="-1" aria-label="Previous day"><svg class="i"><use href="#i-left"/></svg></button>
+  <button class="date-label" id="date-label" data-date="0" aria-label="Jump to today">Today</button>
+  <button class="icon-btn" data-date="1" aria-label="Next day"><svg class="i"><use href="#i-right"/></svg></button>
+</div>
+
+<main>
+<!-- TODAY -->
+<section id="view-today" class="view"></section>
+
+<!-- HISTORY -->
+<section id="view-history" class="view"></section>
+
+<!-- ADD FOOD -->
+<section id="view-add" class="view">
+  <div class="seg" role="tablist">
+    <button data-tab="scan" class="on"><svg class="i"><use href="#i-camera"/></svg>Scan</button>
+    <button data-tab="search"><svg class="i"><use href="#i-search"/></svg>Search</button>
+    <button data-tab="manual"><svg class="i"><use href="#i-pencil"/></svg>Manual</button>
+    <button data-tab="recent"><svg class="i"><use href="#i-redo"/></svg>Recent</button>
+  </div>
+
+  <div class="card tab" id="tab-scan">
+    <h2>Identify food from a photo</h2>
+    <p class="muted small">Take or choose a photo of a meal, such as rice or an apple. A small AI model runs <b>inside your browser</b>, so the photo never leaves your device and there are no fees. It suggests the food and a typical serving. Photos cannot measure portion size, so check the grams.</p>
+    <div class="row"><label class="btn primary" for="id-photo"><svg class="i"><use href="#i-camera"/></svg>Take / choose photo</label><input type="file" id="id-photo" accept="image/*" capture="environment" hidden></div>
+    <p id="id-status" class="muted small" role="status"></p>
+    <div id="id-results"></div>
+    <hr class="sep">
+    <h2>Scan a barcode</h2>
+    <p class="muted small">Point the camera at the barcode on the package. Decoding happens on your device, and the nutrition facts come from the free Open Food Facts database. There are no AI or API fees.</p>
+    <div class="scanbox" id="scanbox" hidden>
+      <video id="scan-video" playsinline muted></video>
+      <div class="scanline"></div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="scan-start">Start camera</button>
+      <button class="btn" id="scan-stop" hidden>Stop</button>
+      <label class="btn" for="scan-photo"><svg class="i"><use href="#i-image"/></svg>Barcode from photo</label>
+      <input type="file" id="scan-photo" accept="image/*" capture="environment" hidden>
+    </div>
+    <p id="scan-status" class="muted small" role="status"></p>
+    <form id="barcode-form" class="row">
+      <input id="barcode-input" inputmode="numeric" placeholder="…or type the barcode number" aria-label="Barcode number">
+      <button class="btn">Look up</button>
+    </form>
+  </div>
+
+  <div class="card tab" id="tab-search" hidden>
+    <h2>Search foods</h2>
+    <p class="muted small">Results appear as you type. Includes Sri Lankan dishes (kottu, hoppers, pol sambol, parippu…) and millions of packaged products.</p>
+    <form id="search-form" class="row">
+      <input id="search-input" type="search" autocomplete="off" placeholder="e.g. kottu, rice, chicken, oats…" aria-label="Search foods">
+      <button class="btn primary">Search</button>
+    </form>
+    <div id="search-results" class="list"></div>
+  </div>
+
+  <div class="card tab" id="tab-manual" hidden>
+    <h2>Add manually</h2>
+    <form id="manual-form" class="grid-form">
+      <label class="span2">Food name<input name="name" required maxlength="80" placeholder="Rice & chicken"></label>
+      <label>Meal<select name="meal"></select></label>
+      <label>Calories (kcal)<input name="kcal" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label>Protein (g)<input name="protein" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label>Carbs (g)<input name="carbs" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label>Fat (g)<input name="fat" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label>Fiber (g)<input name="fiber" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label>Sugar (g)<input name="sugar" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label>Sat. fat (g)<input name="satfat" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label>Sodium (mg)<input name="sodium" type="number" min="0" step="any" inputmode="decimal"></label>
+      <p class="muted small span2">If you leave calories blank, they are calculated from macros (4/4/9 kcal per g).</p>
+      <button class="btn primary span2">Add to log</button>
+    </form>
+  </div>
+
+  <div class="card tab" id="tab-recent" hidden>
+    <h2>Recent foods</h2>
+    <div id="recent-list" class="list"></div>
+  </div>
+</section>
+
+<!-- ACTIVITY -->
+<section id="view-activity" class="view">
+  <div id="act-summary"></div>
+  <div class="card">
+    <h2>Steps</h2>
+    <form id="steps-form" class="row">
+      <input id="steps-input" type="number" min="0" max="200000" step="1" inputmode="numeric" placeholder="Total steps today" aria-label="Steps">
+      <button class="btn primary">Save</button>
+    </form>
+    <p class="muted small" id="steps-note"></p>
+  </div>
+  <div class="card">
+    <h2>Workout</h2>
+    <form id="workout-form" class="grid-form">
+      <label>Category
+        <select name="cat"><option value="gym">Daily gym workout</option><option value="extra">Extra workout</option></select>
+      </label>
+      <label>Activity<select name="type" id="w-type"></select></label>
+      <label>Duration (min)<input name="min" type="number" min="1" max="600" step="1" inputmode="numeric" value="45" required></label>
+      <label>Calories burned (optional)<input name="kcal" type="number" min="0" step="1" inputmode="numeric" placeholder="from watch / machine"></label>
+      <label class="span2">Note<input name="note" maxlength="80" placeholder="Push day, 5 km run…"></label>
+      <p class="muted small span2" id="w-preview"></p>
+      <button class="btn primary span2">Add workout</button>
+    </form>
+    <div id="workout-list" class="list"></div>
+  </div>
+</section>
+
+<!-- PROGRESS -->
+<section id="view-progress" class="view">
+  <div class="card">
+    <h2>Log weight</h2>
+    <form id="weight-form" class="row">
+      <input id="weight-input" type="number" min="20" max="400" step="0.1" inputmode="decimal" placeholder="kg" aria-label="Weight in kg" required>
+      <button class="btn primary">Save for this date</button>
+    </form>
+  </div>
+  <div id="progress-body"></div>
+</section>
+
+<!-- SETTINGS -->
+<section id="view-settings" class="view">
+  <div class="card" id="account-card">
+    <h2>Account</h2>
+    <div id="account-body"></div>
+  </div>
+  <form id="settings-form" class="card">
+    <h2>Profile</h2>
+    <div class="grid-form">
+      <label>Sex (for BMR formula)<select id="s-sex"><option value="male">Male</option><option value="female">Female</option></select></label>
+      <label>Age (years)<input id="s-age" type="number" min="10" max="100" step="1" required></label>
+      <label>Height (cm)<input id="s-height" type="number" min="100" max="250" step="0.1" required></label>
+      <label>Current weight (kg)<input id="s-weight" type="number" min="20" max="400" step="0.1" required></label>
+    </div>
+    <h2>Body fat <span class="muted small">(optional inputs)</span></h2>
+    <div class="grid-form">
+      <label>Measured body fat % <input id="s-bf" type="number" min="3" max="60" step="0.1" placeholder="DEXA / smart scale"></label>
+      <label>Waist at navel (cm)<input id="s-waist" type="number" min="30" max="250" step="0.1"></label>
+      <label>Neck (cm)<input id="s-neck" type="number" min="20" max="80" step="0.1"></label>
+      <label>Hip, widest (cm) <span class="muted small">women only</span><input id="s-hip" type="number" min="40" max="250" step="0.1"></label>
+    </div>
+    <h2>Goal</h2>
+    <div class="grid-form">
+      <label>Goal weight (kg)<input id="s-goal" type="number" min="20" max="400" step="0.1"></label>
+      <label>Goal date<input id="s-goaldate" type="date"></label>
+    </div>
+    <h2>Energy &amp; macros</h2>
+    <div class="grid-form">
+      <label>Daily-life baseline
+        <select id="s-base">
+          <option value="1.2">Sedentary ×1.2 (recommended)</option>
+          <option value="1.3">Mostly on feet ×1.3</option>
+          <option value="1.4">Physical job ×1.4</option>
+        </select>
+      </label>
+      <label>Step length (cm) <span class="muted small">blank = auto</span><input id="s-steplen" type="number" min="30" max="120" step="0.5"></label>
+      <label>Protein target (g per kg)<input id="s-ppk" type="number" min="0.8" max="3" step="0.1"></label>
+      <label>Fat share of calories (%)<input id="s-fatpct" type="number" min="15" max="45" step="1"></label>
+    </div>
+    <button class="btn primary">Save settings</button>
+    <div id="derived" class="derived"></div>
+  </form>
+  <div class="card">
+    <h2>Your data</h2>
+    <p class="muted small">Signed out: data is stored only in this browser. Signed in with Google: it is also saved to your private cloud copy so your laptop and phone stay in sync. Backups work either way.</p>
+    <div class="row">
+      <button class="btn" id="export-btn">Export backup</button>
+      <label class="btn" for="import-file">Import backup</label>
+      <input type="file" id="import-file" accept="application/json" hidden>
+      <button class="btn danger" id="reset-btn">Erase all data</button>
+    </div>
+  </div>
+</section>
+
+<!-- SCIENCE -->
+<section id="view-science" class="view">
+  <article class="card prose">
+    <h2>How the numbers are calculated</h2>
+    <p class="muted small">Every figure here is an <b>estimate</b>. Population equations are typically within about ±10% for an individual, so track trends over weeks rather than single days. This is not medical advice. Consult a qualified clinician before a large diet change.</p>
+
+    <h3>1. BMI</h3>
+    <p><code>BMI = weight(kg) ÷ height(m)²</code>. The WHO bands are under 18.5, 18.5–24.9, 25–29.9 and 30 or more. BMI cannot tell muscle from fat, so a muscular person can read "overweight". Use body fat % alongside it.</p>
+
+    <h3>2. Body-fat %</h3>
+    <ul>
+      <li><b>Measured value</b> (DEXA or a smart scale), if you enter one.</li>
+      <li><b>U.S. Navy tape method</b> (Hodgdon &amp; Beckett, 1984) from waist, neck and, for women, hip. Typical error is 3–4 points.<br>
+        <code>Men: 495 ÷ (1.0324 − 0.19077·log₁₀(waist−neck) + 0.15456·log₁₀(height)) − 450</code><br>
+        <code>Women: 495 ÷ (1.29579 − 0.35004·log₁₀(waist+hip−neck) + 0.22100·log₁₀(height)) − 450</code></li>
+      <li><b>Deurenberg equation</b> (1991) if nothing else is available. It is the least accurate option.<br>
+        <code>BF% = 1.20·BMI + 0.23·age − 10.8·(1 male / 0 female) − 5.4</code></li>
+    </ul>
+
+    <h3>3. Resting energy (BMR)</h3>
+    <p><b>Mifflin-St Jeor</b> (1990) was the most accurate of the common equations in the Frankenfield 2005 review: <code>10·kg + 6.25·cm − 5·age + 5 (men) / −161 (women)</code>.
+    If you enter a <i>measured</i> body-fat %, the app switches to <b>Katch-McArdle</b>, <code>370 + 21.6 × lean mass (kg)</code>, which accounts for muscle.</p>
+
+    <h3>4. Total daily energy expenditure</h3>
+    <p>Most apps multiply BMR by a vague "activity factor", which is usually wrong. Here the parts are counted separately:</p>
+    <p><code>Expenditure = BMR × baseline + steps + workouts</code></p>
+    <ul>
+      <li><b>Baseline ×1.2</b> covers resting metabolism, the thermic effect of food (about 10% of intake; Westerterp 2004) and ordinary sedentary living.</li>
+      <li><b>Steps</b>: step length ≈ 0.415 × height (men) or 0.413 × height (women). Net walking cost is about <b>0.5 kcal per kg per km</b> (from the ACSM walking equation, 0.1 mL O₂/kg/m). So <code>kcal = 0.5 × kg × steps × step length(km)</code>. Baseline living already includes a little walking, so this slightly overcounts.</li>
+      <li><b>Workouts</b> use MET values from the Compendium of Physical Activities (Ainsworth 2011). <code>kcal = (MET − 1) × kg × hours</code>. Subtracting 1 MET avoids counting resting energy twice. If your watch or machine gives a figure, you can enter that instead, though wearables can be off by 30–90% (Shcherbina 2017).</li>
+    </ul>
+
+    <h3>5. Deficit and surplus</h3>
+    <p><code>Balance = calories eaten − expenditure</code>. A negative balance is a deficit. The rule of thumb is <b>≈7,700 kcal per kg of body weight</b> (3,500 kcal/lb; Wishnofsky 1958). It is a decent short-term guide but overestimates long-term loss, because your metabolism adapts as you lose weight (Hall et al., Lancet 2011). Weekly weight changes, not this number, are the ground truth.</p>
+
+    <h3>6. Goal plan</h3>
+    <p><code>Required daily deficit = (current − goal weight) × 7700 ÷ days left</code>.
+    The daily calorie budget is expenditure minus that deficit. The app warns if the plan needs more than ~1% of body weight per week, a deficit over 1,000 kcal/day, or intake below your BMR. Those levels risk muscle loss and nutrient shortfalls.</p>
+
+    <h3>7. Macro and nutrient targets</h3>
+    <ul>
+      <li><b>Protein</b>: 1.6 g/kg is the point where extra protein stops adding meaningful muscle in resistance-trained people (Morton et al., 2018). The default is 1.8 g/kg, and 1.6–2.2 is a reasonable range.</li>
+      <li><b>Fat</b>: 20–35% of calories (default 28%), never below about 0.6 g/kg.</li>
+      <li><b>Carbs</b>: the remaining calories.</li>
+      <li><b>Energy per gram</b> (Atwater): protein 4, carbohydrate 4, fat 9 kcal/g.</li>
+      <li><b>Fiber</b> ≥ 14 g per 1,000 kcal (Institute of Medicine). <b>Sugar</b> and <b>saturated fat</b> under 10% of calories, and <b>sodium</b> under 2,000 mg (WHO guidance).</li>
+    </ul>
+
+    <h3>8. Scanning without AI fees</h3>
+    <p>Barcodes are decoded in your browser: the built-in <code>BarcodeDetector</code> where available (Chrome/Android), otherwise the open-source ZXing library. The code is looked up in <b>Open Food Facts</b>, a free crowd-sourced database that needs no API key. Coverage varies by country and entries can contain mistakes. <b>Photo identification</b> uses CLIP (Radford et al., 2021), a small open-source image model that runs in your browser through Transformers.js. It compares your photo with the names in the built-in food list (zero-shot), so it only recognises foods on that list, and it can confuse similar-looking foods. A photo cannot measure portion size, so it proposes a typical serving that you should adjust. Use Search or Manual for anything it misses. Packaged-food labels may legally deviate from true content by up to 20% in some jurisdictions.</p>
+
+    <h3>References</h3>
+    <ol class="small">
+      <li>Mifflin MD et al. Am J Clin Nutr 1990;51:241–7.</li>
+      <li>Frankenfield D et al. J Am Diet Assoc 2005;105:775–89.</li>
+      <li>Katch FI, McArdle WD. Nutrition, Weight Control and Exercise, 1977 (Katch-McArdle).</li>
+      <li>Deurenberg P et al. Br J Nutr 1991;65:105–14.</li>
+      <li>Hodgdon JA, Beckett MB. Naval Health Research Center reports 84-29 and 84-11, 1984.</li>
+      <li>Ainsworth BE et al. Med Sci Sports Exerc 2011;43:1575–81.</li>
+      <li>Westerterp KR. Nutr Metab 2004;1:5.</li>
+      <li>Wishnofsky M. Am J Clin Nutr 1958;6:542–6.</li>
+      <li>Hall KD et al. Lancet 2011;378:826–37.</li>
+      <li>Morton RW et al. Br J Sports Med 2018;52:376–84.</li>
+      <li>Shcherbina A et al. J Pers Med 2017;7:3.</li>
+      <li>Tudor-Locke C, Bassett DR. Sports Med 2004;34:1–8.</li>
+    </ol>
+  </article>
+</section>
+</main>
+
+<dialog id="picker" aria-labelledby="picker-title">
+  <form method="dialog" id="picker-form">
+    <h2 id="picker-title"></h2>
+    <p class="muted small" id="picker-sub"></p>
+    <div class="grid-form">
+      <label>Amount (g or ml)<input id="picker-grams" type="number" min="1" step="any" inputmode="decimal" required></label>
+      <label>Meal<select id="picker-meal"></select></label>
+    </div>
+    <div id="picker-preview" class="chips"></div>
+    <div class="row end">
+      <button type="button" class="btn" id="picker-cancel">Cancel</button>
+      <button class="btn primary" value="ok">Add to log</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
