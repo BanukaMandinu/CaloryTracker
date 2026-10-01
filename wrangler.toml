@@ -1,4 +1,4 @@
-name = "bm-calory-tracker"
+name = "calorytracker"
 main = "src/worker.js"
 compatibility_date = "2025-01-01"
 
