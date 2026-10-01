@@ -15,7 +15,19 @@
 <link rel="stylesheet" href="styles.css">
 <script>try{var t=localStorage.getItem('bmct.theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
-<body>
+<body class="locked">
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="gate-card">
+    <img src="icon.svg" width="76" height="76" alt="" class="w-logo">
+    <h1 id="gate-title">BM Calory Tracker</h1>
+    <p class="muted">Log your food, water and workouts and see your calories at a glance. Sign in to open your diary.</p>
+    <div id="gate-spin" class="spin" role="status" aria-label="Loading"></div>
+    <div id="g-btn-gate" class="gbtn" hidden></div>
+    <p class="muted small" id="gate-msg" role="status"></p>
+    <button class="btn quiet block" id="gate-guest" hidden>Use on this device only</button>
+    <p class="muted small gate-fine">Your diary is private to your account and syncs between your phone and laptop.</p>
+  </div>
+</div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <symbol id="i-today" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -151,6 +163,19 @@
         <label>Reach it by<input id="s-goaldate" type="date"></label>
       </div>
     </div>
+    <div class="card" id="plan-card">
+      <h2>Calorie plan</h2>
+      <p class="plan-suggest" id="plan-suggest"></p>
+      <input type="hidden" id="s-planmode" value="auto">
+      <div class="seg2" role="radiogroup" aria-label="How to set your daily target">
+        <button type="button" class="on" data-plan="auto" role="radio" aria-checked="true">Automatic</button>
+        <button type="button" data-plan="deficit" role="radio" aria-checked="false">My deficit</button>
+        <button type="button" data-plan="target" role="radio" aria-checked="false">My calories</button>
+      </div>
+      <p class="muted small">Automatic works the deficit out from your goal. Or choose your own.</p>
+      <div id="plan-deficit" hidden><label>Daily deficit (kcal) <span class="opt">negative number = surplus</span><input id="s-deficit" type="number" min="-1500" max="1500" step="10" inputmode="numeric"></label><p class="muted small">Your target each day = calories out − this deficit, so it grows when you log steps and workouts.</p></div>
+      <div id="plan-target" hidden><label>Daily calorie target (kcal)<input id="s-target" type="number" min="800" max="6000" step="10" inputmode="numeric"></label><p class="muted small">A fixed number every day, whatever your activity.</p></div>
+    </div>
     <div class="card">
       <h2>About you</h2>
       <div class="grid-form">
@@ -250,6 +275,11 @@
       <li><b>Fiber</b> ≥ 14 g per 1,000 kcal (Institute of Medicine). <b>Sugar</b> and <b>saturated fat</b> under 10% of calories, and <b>sodium</b> under 2,000 mg (WHO guidance).</li>
     </ul>
 
+    <h3>Goal-based deficit and your own plan</h3>
+    <p>Your calorie burn is not constant: it falls by roughly <b>20–25 kcal/day for every kg lost</b> (and rises as you gain), so the same daily deficit loses weight more slowly over time (Hall et al. 2011, 2012). The app uses a simplified dynamic energy-balance model. With Δ = kg to change, T = days to your goal date and ρ = 7,700 kcal/kg:</p>
+    <p><code>deficit = 22 × Δ ÷ (1 − e^(−22·T/ρ))</code></p>
+    <p>For a typical goal this is roughly 5–20% stricter than the plain rule <code>Δ × 7,700 ÷ T</code>, which ignores that adaptation. The plan is then <b>capped at a safe pace</b>: about 1% of body weight per week (never more than 1,000 kcal/day) when losing, and 500 kcal/day when gaining. If your date is too aggressive, the app shows the date you would actually reach at the safe pace. Your daily target never drops below 1,500 kcal for men or 1,200 kcal for women, the usual minimum for unsupervised dieting (NHLBI 1998). In <b>Profile → Calorie plan</b> you can instead enter your own daily deficit or your own fixed calorie target. Very large deficits should be supervised by a clinician.</p>
+
     <h3>Water</h3>
     <p>The default goal is <b>35 ml per kg of body weight</b>, rounded to the nearest 100 ml and kept between 1.5 and 4 litres. This is a general guide. EFSA's adequate intake for <i>total</i> water (drinks plus the roughly 20% that comes from food) is about 2.0 L/day for women and 2.5 L/day for men (EFSA 2010). Needs rise with heat, altitude and exercise, and some medical conditions or medicines change them. Set your own goal in Profile, and ask a clinician if you have a condition that affects fluid intake.</p>
 
@@ -270,6 +300,8 @@
       <li>Morton RW et al. Br J Sports Med 2018;52:376–84.</li>
       <li>Shcherbina A et al. J Pers Med 2017;7:3.</li>
       <li>Tudor-Locke C, Bassett DR. Sports Med 2004;34:1–8.</li>
+      <li>Hall KD et al. Energy balance and its components: implications for body weight regulation. Am J Clin Nutr 2012;95:989–94.</li>
+      <li>NHLBI. Clinical guidelines on the identification, evaluation, and treatment of overweight and obesity in adults, 1998.</li>
       <li>EFSA Panel on Dietetic Products, Nutrition and Allergies. Scientific opinion on dietary reference values for water. EFSA Journal 2010;8(3):1459.</li>
     </ol>
   </article>
@@ -354,10 +386,12 @@
   <form method="dialog" id="picker-form">
     <h2 id="picker-title"></h2>
     <p class="muted small" id="picker-sub"></p>
-    <div class="grid-form">
-      <label>Amount (g or ml)<input id="picker-grams" type="number" min="1" step="any" inputmode="decimal" required></label>
-      <label>Meal<select id="picker-meal"></select></label>
+    <div class="amountrow">
+      <label>How much<input id="picker-qty" type="number" min="0.1" step="any" inputmode="decimal" required></label>
+      <label>Unit<select id="picker-unit"></select></label>
     </div>
+    <p class="muted small" id="picker-eq"></p>
+    <label class="pmeal">Meal<select id="picker-meal"></select></label>
     <div class="chips-row" id="picker-quick" aria-label="Quick amounts"></div>
     <div id="picker-preview" class="macro-preview"></div>
     <div class="row end">
@@ -367,17 +401,8 @@
   </form>
 </dialog>
 
-<dialog id="welcome" aria-labelledby="w-signin-title">
-  <div id="w-signin" class="w-signin">
-    <img src="icon.svg" alt="" width="64" height="64" class="w-logo">
-    <h2 id="w-signin-title">Welcome to BM Calory Tracker</h2>
-    <p class="muted">Sign in to keep your food diary safe and synced between your phone and laptop. It only takes a tap.</p>
-    <div id="g-btn-w" class="gbtn"></div>
-    <p class="muted small" id="g-msg-w" role="status"></p>
-    <button type="button" class="btn quiet block" id="w-nosignin">Continue without an account</button>
-    <p class="muted small">Without an account your data stays on this device only.</p>
-  </div>
-  <form id="welcome-form" hidden>
+<dialog id="welcome" aria-labelledby="welcome-title">
+  <form id="welcome-form">
     <img src="icon.svg" alt="" width="52" height="52" class="w-logo">
     <h2 id="welcome-title">About you</h2>
     <p class="muted"><span id="w-hello"></span>We use this to work out your daily energy burn and a calorie budget. You can change everything later in Profile.</p>

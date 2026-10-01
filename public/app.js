@@ -59,6 +59,34 @@ const ALIAS = { 'Kottu roti, chicken': 'kottu koththu kothu kotthu kotu godamba'
   'Paruppu vadai': 'vadai wade vada parippu vadai', 'Kavum (oil cake)': 'kavum konda kavum oil cake', 'Kokis': 'kokis', 'Kalu dodol': 'dodol',
   'Buffalo curd': 'meekiri curd mee kiri yogurt', 'Coconut milk': 'pol kiri kiri', 'King coconut water (thambili)': 'thambili king coconut', 'Milk tea with sugar': 'plain tea kiri thé tea',
   'Kola kanda (herbal porridge)': 'kola kenda kanda porridge', 'Roti / chapati': 'roti chapati godamba roti', 'Coconut, fresh': 'pol coconut', 'Pittu': 'puttu', 'Wattalapam': 'watalappan watalappam pudding' };
+// household units per food: [singular, plural, grams]. Typical sizes, so adjust if yours differ.
+const UNITS = {
+  'Egg, whole boiled': [['egg', 'eggs', 50]], 'Egg, fried': [['egg', 'eggs', 46]], 'Egg, scrambled': [['egg', 'eggs', 61]], 'Egg, omelette': [['omelette', 'omelettes', 100]], 'Egg white, boiled': [['egg white', 'egg whites', 33]],
+  'Chicken breast, cooked': [['piece', 'pieces', 120]], 'Salmon, cooked': [['fillet', 'fillets', 120]], 'Tuna, canned in water': [['can', 'cans', 112]],
+  'Rice, white cooked': [['cup', 'cups', 160], ['plate', 'plates', 250]], 'Rice, brown cooked': [['cup', 'cups', 160], ['plate', 'plates', 250]], 'Red rice (kekulu), cooked': [['cup', 'cups', 160], ['plate', 'plates', 250]],
+  'Oats, dry': [['cup', 'cups', 80], ['tbsp', 'tbsp', 7]], 'Bread, white': [['slice', 'slices', 30]], 'Bread, wholewheat': [['slice', 'slices', 35]], 'Roti / chapati': [['roti', 'rotis', 45]], 'Pol roti': [['roti', 'rotis', 60]],
+  'Pasta, cooked': [['cup', 'cups', 140]], 'Noodles, cooked': [['cup', 'cups', 160]], 'Fried rice': [['plate', 'plates', 250]],
+  'Potato, boiled': [['potato', 'potatoes', 150]], 'Sweet potato, baked': [['potato', 'potatoes', 130]],
+  'Banana': [['banana', 'bananas', 118]], 'Apple': [['apple', 'apples', 180]], 'Orange': [['orange', 'oranges', 130]], 'Mango': [['mango', 'mangoes', 200], ['cup sliced', 'cups sliced', 165]],
+  'Grapes': [['cup', 'cups', 150]], 'Watermelon': [['slice', 'slices', 280]], 'Strawberries': [['cup', 'cups', 150]], 'Pineapple': [['slice', 'slices', 84]], 'Papaya': [['cup', 'cups', 140]], 'Avocado': [['half', 'halves', 100]],
+  'Milk, whole': [['cup', 'cups', 240]], 'Milk, skim': [['cup', 'cups', 240]], 'Greek yogurt, plain 0%': [['cup', 'cups', 245]], 'Buffalo curd': [['cup', 'cups', 200]],
+  'Cheddar cheese': [['slice', 'slices', 28]], 'Butter': [['tsp', 'tsp', 5], ['tbsp', 'tbsp', 14]], 'Olive oil': [['tsp', 'tsp', 5], ['tbsp', 'tbsp', 14]], 'Peanut butter': [['tbsp', 'tbsp', 16]],
+  'Almonds': [['handful', 'handfuls', 28]], 'Honey': [['tsp', 'tsp', 7], ['tbsp', 'tbsp', 21]], 'Sugar': [['tsp', 'tsp', 4], ['tbsp', 'tbsp', 12.5]], 'Cola': [['can', 'cans', 330], ['glass', 'glasses', 250]],
+  'Coconut milk': [['cup', 'cups', 240], ['tbsp', 'tbsp', 15]], 'Milk tea with sugar': [['cup', 'cups', 200]], 'King coconut water (thambili)': [['king coconut', 'king coconuts', 300]], 'Kola kanda (herbal porridge)': [['bowl', 'bowls', 250]],
+  'Lentils, cooked': [['cup', 'cups', 165]], 'Chickpeas, cooked': [['cup', 'cups', 165]], 'Dhal curry': [['serving', 'servings', 150]],
+  'Pizza': [['slice', 'slices', 110]], 'Cheeseburger': [['burger', 'burgers', 150]], 'French fries': [['serving', 'servings', 120]], 'Cake': [['slice', 'slices', 80]], 'Cookie': [['cookie', 'cookies', 30]],
+  'Ice cream, vanilla': [['scoop', 'scoops', 66]], 'Dark chocolate 70%': [['square', 'squares', 10]], 'Whey protein powder': [['scoop', 'scoops', 30]],
+  'Kottu roti, chicken': [['plate', 'plates', 350]], 'Kottu roti, vegetable': [['plate', 'plates', 350]], 'Kottu roti, egg': [['plate', 'plates', 350]],
+  'Hopper, plain (appa)': [['hopper', 'hoppers', 60]], 'Hopper, egg': [['egg hopper', 'egg hoppers', 100]], 'String hoppers (idiyappam)': [['string hopper', 'string hoppers', 15]],
+  'Pittu': [['roll', 'rolls', 100]], 'Kiribath (milk rice)': [['piece', 'pieces', 60]], 'Rice & curry plate (veg + dhal)': [['plate', 'plates', 400]], 'Lamprais': [['packet', 'packets', 450]],
+  'Pol sambol': [['tbsp', 'tbsp', 20]], 'Lunu miris': [['tbsp', 'tbsp', 20]], 'Seeni sambol': [['tbsp', 'tbsp', 20]], 'Mallum (leaves with coconut)': [['serving', 'servings', 60]],
+  'Jackfruit curry (polos)': [['serving', 'servings', 100]], 'Potato curry': [['serving', 'servings', 100]], 'Beetroot curry': [['serving', 'servings', 80]], 'Chicken curry (Sri Lankan)': [['piece', 'pieces', 100]],
+  'Fish curry (ambul thiyal)': [['piece', 'pieces', 100]], 'Egg curry': [['serving', 'servings', 120]], 'Sambar': [['cup', 'cups', 200]],
+  'Dosa (thosai)': [['dosa', 'dosas', 100]], 'Idli': [['idli', 'idlis', 40]], 'Vegetable roll / samosa': [['roll', 'rolls', 70]], 'Fish cutlet': [['cutlet', 'cutlets', 60]], 'Fish roll': [['roll', 'rolls', 80]],
+  'Paruppu vadai': [['vadai', 'vadai', 45]], 'Wattalapam': [['serving', 'servings', 100]], 'Kavum (oil cake)': [['kavum', 'kavum', 50]], 'Kokis': [['kokis', 'kokis', 20]], 'Kalu dodol': [['piece', 'pieces', 30]]
+};
+const perLabel = it => { const u = it.units?.[0]; return u ? `${r0(it.per100.kcal * u.g / 100)} kcal per ${u.l}` : `${r0(it.per100.kcal * (it.serving || 100) / 100)} kcal per ${it.serving || 100} g`; };
+const itemSub = f => f.qtyLabel ? `${f.qtyLabel} · ${r0(f.grams)} g` : (f.grams ? r0(f.grams) + ' g' : '');
 // "Rice, white cooked" ->"white cooked rice" (natural phrase for the image model)
 const foodLabel = n => n.toLowerCase().replace(/^([^,]+), (.+)$/, '$2 $1').replace(/ \d+%$/, '');
 
@@ -90,7 +118,8 @@ const FOODS = [
   ['Strawberries', 32, .7, 7.7, .3, 2, 4.9, 1, 0], ['Pineapple', 50, .5, 13, .1, 1.4, 10, 1, 0],
   ['Papaya', 43, .5, 11, .3, 1.7, 7.8, 8, .1], ['Ice cream, vanilla', 207, 3.5, 24, 11, .7, 21, 80, 6.8],
   ['Cake', 350, 5, 55, 13, 1, 35, 300, 3], ['Cookie', 480, 5, 64, 23, 2, 33, 350, 10],
-  ['Salad, mixed greens', 17, 1.5, 3, .2, 1.8, 1, 28, 0], ['Dhal curry', 105, 6, 14, 3, 4, 1.5, 200, 1.5],
+  ['Salad, mixed greens', 17, 1.5, 3, .2, 1.8, 1, 28, 0],
+  ['Egg, fried', 196, 13.6, .8, 14.8, 0, .4, 207, 4.4], ['Egg, scrambled', 149, 10, 1.6, 11, 0, 1.4, 145, 3.3], ['Egg, omelette', 154, 10.6, .6, 11.7, 0, .6, 155, 3.5], ['Egg white, boiled', 52, 10.9, .7, .2, 0, .7, 166, 0], ['Dhal curry', 105, 6, 14, 3, 4, 1.5, 200, 1.5],
   // Sri Lankan dishes: approximate typical home / street-food values (recipes vary a lot, so adjust grams)
   ['Kottu roti, chicken', 190, 9, 22, 7, 1.5, 1.5, 450, 2, 'LK'], ['Kottu roti, vegetable', 170, 5, 25, 6, 2, 2, 400, 1.5, 'LK'],
   ['Kottu roti, egg', 185, 8, 22, 8, 1.5, 1.5, 430, 2.2, 'LK'], ['Hopper, plain (appa)', 190, 3, 32, 5, .8, 3, 150, 2.5, 'LK'],
@@ -111,13 +140,13 @@ const FOODS = [
   ['Buffalo curd', 120, 4, 5, 9, 0, 5, 45, 6, 'LK'], ['Coconut milk', 197, 2, 3, 21, .5, 3, 15, 19, 'LK'],
   ['King coconut water (thambili)', 19, .2, 3.7, .2, 0, 3.5, 105, 0, 'LK'], ['Milk tea with sugar', 30, .8, 5, .8, 0, 5, 10, .5, 'LK'],
   ['Kola kanda (herbal porridge)', 60, 1, 10, 2, 1, 0, 100, 1.5, 'LK']
-].map(f => ({ name: f[0], serving: SERV[f[0]] || 100, label: foodLabel(f[0]), src: f[9] === 'LK' ? 'Sri Lankan, approx.' : 'built-in', per100: { kcal: f[1], protein: f[2], carbs: f[3], fat: f[4], fiber: f[5], sugar: f[6], sodium: f[7], satfat: f[8] } }));
+].map(f => ({ name: f[0], serving: SERV[f[0]] || 100, label: foodLabel(f[0]), units: (UNITS[f[0]] || []).map(([l, p, g]) => ({ l, p, g })), src: f[9] === 'LK' ? 'Sri Lankan, approx.' : 'built-in', per100: { kcal: f[1], protein: f[2], carbs: f[3], fat: f[4], fiber: f[5], sugar: f[6], sodium: f[7], satfat: f[8] } }));
 
 // ---------- storage ----------
 const KEY = 'bmct.v1';
 const DEFAULTS = () => ({
   settings: { sex: 'male', age: 30, heightCm: 175, weightKg: 75, bodyFat: '', waist: '', neck: '', hip: '', goalWeight: '', goalDate: '',
-    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '' },
+    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '', planMode: 'auto', manualDeficit: '', manualTarget: '' },
   days: {}, weights: {}, recent: []
 });
 function load() {
@@ -181,23 +210,39 @@ function expenditure(d = cur) {
   const wk = dd.workouts.reduce((a, w) => a + num(w.kcal), 0);
   return { base, steps: st, workouts: wk, total: base + st + wk };
 }
+// Goal planner: dynamic energy-balance model (simplified from Hall et al., Lancet 2011).
+// Daily calorie burn falls by about ADAPT kcal for every kg of body weight lost (and rises when gaining), so a fixed daily deficit
+// slows down over time. Solving dx/dt = (D - a*x)/rho for the kg changed x gives the deficit that lands on the goal date:
+//   D = a * delta / (1 - e^(-a*T/rho))     (delta = kg to change, T = days, rho = 7,700 kcal/kg)
+const ADAPT = 22;
+const intakeFloor = () => S().sex === 'male' ? 1500 : 1200; // common unsupervised minimum (NHLBI 1998)
 function plan() {
   const s = S(); if (!num(s.goalWeight) || !s.goalDate) return null;
-  const w = curWeight(), goal = num(s.goalWeight);
+  const w = curWeight(), goal = num(s.goalWeight), rho = KCAL_PER_KG;
   const days = Math.ceil((new Date(s.goalDate + 'T12:00:00') - new Date(todayISO() + 'T12:00:00')) / 864e5);
   if (days <= 0) return { expired: true };
   const diff = w - goal; // >0 lose, <0 gain
-  const deficit = diff * KCAL_PER_KG / days;
-  const perWeek = diff / days * 7;
-  const warns = [];
-  if (Math.abs(perWeek) > .01 * w) warns.push(`That is ${r1(Math.abs(perWeek))} kg/week, more than ~1% of body weight per week. Consider a later date.`);
-  if (deficit > 1000) warns.push('A deficit above 1,000 kcal/day risks muscle loss and nutrient shortfalls.');
-  return { days, diff, deficit, perWeek, warns, goal };
+  const needed = diff ? ADAPT * diff / (1 - Math.exp(-ADAPT * days / rho)) : 0;
+  const cap = diff >= 0 ? Math.min(1000, .01 * w * rho / 7) : 500; // about 1% of body weight per week when losing; 500 kcal/day surplus when gaining
+  const capped = Math.abs(needed) > cap, deficit = capped ? Math.sign(needed) * cap : needed;
+  const simple = diff * rho / days; // the plain 7,700 rule, for comparison
+  const warns = []; let eta = null;
+  if (capped) {
+    const x = ADAPT * Math.abs(diff) / cap;
+    if (x < 1) eta = new Date(Date.now() - rho / ADAPT * Math.log(1 - x) * 864e5);
+    const word = diff > 0 ? 'deficit' : 'surplus', limit = diff > 0 ? ' (about 1% of body weight per week)' : '';
+    warns.push(`Reaching ${r1(goal)} kg by then would need a ${r0(Math.abs(needed))} kcal/day ${word}, above the safe limit of ${r0(cap)} kcal/day${limit}. ` + (eta
+      ? `The plan uses ${r0(cap)} kcal/day instead, which gets you there around ${eta.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}.`
+      : `At that limit your weight would level off before ${r1(goal)} kg, because your body burns less as you lose weight. Choose a closer goal or a later date.`));
+  }
+  return { days, diff, deficit, needed, simple, capped, cap, eta, perWeek: deficit / rho * 7, warns, goal };
 }
 function budget() {
-  const e = expenditure().total, p = plan();
-  const kcal = p && !p.expired ? e - p.deficit : e;
-  return { kcal, deficit: p && !p.expired ? p.deficit : 0, e };
+  const e = expenditure().total, s = S(), p = plan(), manualT = num(s.manualTarget);
+  if (s.planMode === 'target' && manualT > 0) return { kcal: manualT, deficit: e - manualT, e, mode: 'target' };
+  if (s.planMode === 'deficit' && s.manualDeficit !== '' && s.manualDeficit != null) { const d = num(s.manualDeficit); return { kcal: Math.max(0, e - d), deficit: d, e, mode: 'deficit' }; }
+  if (p && !p.expired) { const kcal = Math.max(e - p.deficit, intakeFloor()); return { kcal, deficit: e - kcal, e, mode: 'auto' }; }
+  return { kcal: e, deficit: 0, e, mode: 'maintain' };
 }
 function targets() {
   const b = budget().kcal, w = curWeight(), s = S();
@@ -260,6 +305,13 @@ function greeting() {
   const hr = new Date().getHours(), hello = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening', nm = (user?.name || '').split(' ')[0];
   return `<div class="greet">${user?.picture ? `<img class="av" src="${esc(user.picture)}" alt="" referrerpolicy="no-referrer">` : ''}<div><span>${hello}</span><b>${nm ? esc(nm) : 'Welcome'}</b></div>${user ? '' : '<a class="syncnudge" href="#settings">Sign in to sync</a>'}</div>`;
 }
+function planText(b) {
+  const word = b.deficit >= 0 ? 'deficit' : 'surplus', d = r0(Math.abs(b.deficit));
+  if (b.mode === 'target') return ` Your target is the fixed ${r0(b.kcal)} kcal you set in Profile.`;
+  if (b.mode === 'deficit') return ` Your target is calories out minus the ${d} kcal/day ${word} you set in Profile.`;
+  if (b.mode === 'auto') return ` Your target is calories out minus a ${d} kcal/day ${word}, worked out from your goal weight and date with a dynamic energy-balance model. You can set your own in Profile.`;
+  return ' Set a goal weight and date in Profile to get a target that aims at it.';
+}
 function renderToday() {
   const t = totals(), e = expenditure(), b = budget(), tg = targets(), bal = t.kcal - e.total;
   const R = 92, C = 2 * Math.PI * R, pct = b.kcal > 0 ? Math.min(1, t.kcal / b.kcal) : 0;
@@ -268,7 +320,7 @@ function renderToday() {
   const meals = MEALS.map(m => {
     const fs = foods.filter(f => f.meal === m), kc = fs.reduce((a, f) => a + num(f.kcal), 0);
     return `<div class="meal-row"><div class="meal-h"><span class="meal-ico">${ico(MEAL_ICON[m])}</span><b>${m}</b><span class="meal-kc">${fs.length ? r0(kc) + ' kcal' : ''}</span><button class="addmini" data-addmeal="${m}" aria-label="Add food to ${m}">${ico('plus')}</button></div>` +
-      fs.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${f.grams ? r0(f.grams) + ' g' : ''}</span></div><div class="k">${r0(f.kcal)}</div><button class="icon-btn sm" data-del-food="${f.id}" aria-label="Delete ${esc(f.name)}">${ico('trash')}</button></div>`).join('') + '</div>';
+      fs.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${itemSub(f)}</span></div><div class="k">${r0(f.kcal)}</div><button class="icon-btn sm" data-del-food="${f.id}" aria-label="Delete ${esc(f.name)}">${ico('trash')}</button></div>`).join('') + '</div>';
   }).join('');
   $('#view-today').innerHTML = `
   ${cur === todayISO() ? greeting() : ''}
@@ -283,7 +335,7 @@ function renderToday() {
     <details class="hdet"><summary>See the details</summary>
       <div class="breakdown"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>calories out</span></div>
       <div class="verdict ${v.cls}">${ico(v.icon)}<div><b>${v.head}</b><span>${v.sub}</span></div></div>
-      <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top.${b.deficit ? ` Your daily target is calories out minus the ${r0(b.deficit)} kcal daily deficit that reaches your goal.` : ' Set a goal weight and date in Profile to get a target that aims at it.'}</p>
+      <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top.${planText(b)}</p>
     </details>
   </div>
 
@@ -346,15 +398,15 @@ function weightChart() {
 function renderProgress() {
   $('#ptabs').innerHTML = ptabs('progress');
   $('#weight-input').value = db.weights[cur] || '';
-  const p = plan(), w = curWeight(), s = S();
+  const p = plan(), w = curWeight(), s = S(), bg = budget();
   let goal = '<p class="muted">Set a goal weight and date in Settings.</p>';
   if (p?.expired) goal = '<p class="warn">Your goal date has passed. Set a new date in Settings.</p>';
   else if (p) {
     const start = num(s.startWeight) || w, tot = start - p.goal;
     const prog = tot ? Math.min(100, Math.max(0, (start - w) / tot * 100)) : 100;
-    goal = `<div class="stats"><div class="stat"><b>${r1(w)} → ${r1(p.goal)}</b><span>kg</span></div><div class="stat"><b>${p.days}</b><span>days left</span></div><div class="stat"><b>${r0(Math.abs(p.deficit))}</b><span>kcal/day ${p.deficit >= 0 ? 'deficit' : 'surplus'}</span></div></div>
+    goal = `<div class="stats"><div class="stat"><b>${r1(w)} → ${r1(p.goal)}</b><span>kg</span></div><div class="stat"><b>${p.days}</b><span>days left</span></div><div class="stat"><b>${r0(Math.abs(bg.deficit))}</b><span>kcal/day ${bg.deficit >= 0 ? 'deficit' : 'surplus'}</span></div></div>
       <div class="bar" style="--c:var(--accent)"><div class="h"><span>Progress</span><span>${r0(prog)}%</span></div><div class="t"><i style="width:${prog}%"></i></div></div>
-      <p class="small">Needed pace: ${r1(Math.abs(p.perWeek))} kg/week ${p.perWeek >= 0 ? 'loss' : 'gain'}.</p>${p.warns.map(x => `<div class="note">⚠ ${esc(x)}</div>`).join('')}`;
+      <p class="small">Suggested pace: <b>${r1(Math.abs(p.perWeek))} kg/week</b> ${p.perWeek >= 0 ? 'loss' : 'gain'} (${r0(Math.abs(p.deficit))} kcal/day). Your calorie burn falls as you lose weight, so this is a little stricter than the simple 7,700 kcal/kg rule (${r0(Math.abs(p.simple))} kcal/day).</p>${bg.mode === 'target' || bg.mode === 'deficit' ? `<p class="small">You are using your own ${bg.mode === 'target' ? 'calorie target' : 'deficit'} from Profile.</p>` : ''}${p.warns.map(x => `<div class="note">⚠ ${esc(x)}</div>`).join('')}`;
     const tg = targets(); if (tg.kcal < bmr().v) goal += `<div class="note">⚠ Today's calorie budget (${r0(tg.kcal)}) is below your BMR (${r0(bmr().v)}). Discuss very-low-calorie plans with a clinician.</div>`;
   }
   const logged = Object.keys(db.days).filter(d => db.days[d].foods.length && d < todayISO() || d === todayISO() && db.days[d]?.foods.length).sort().slice(-7);
@@ -371,13 +423,23 @@ function renderProgress() {
   $('#progress-body').innerHTML = `<div class="card"><h2>Your body</h2><div class="stats"><div class="stat"><b>${r1(w)}</b><span>kg</span></div><div class="stat"><b>${r1(bm)}</b><span>BMI · ${bmiCat(bm)}</span></div><div class="stat"><b>${r1(bf.v)}%</b><span>body fat</span></div></div><p class="muted small">Body fat: ${bf.src}. Add waist and neck measurements in Profile for a better estimate.</p></div><div class="card"><h2>Goal</h2>${goal}</div><div class="card"><h2>Last 14 days</h2>${barsChart()}${trend}</div><div class="card"><h2>Weight</h2>${weightChart()}</div>`;
 }
 
+function setPlanUI(mode) {
+  mode = ['auto', 'deficit', 'target'].includes(mode) ? mode : 'auto';
+  $('#s-planmode').value = mode;
+  $$('[data-plan]').forEach(b => { const on = b.dataset.plan === mode; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+  $('#plan-deficit').hidden = mode !== 'deficit'; $('#plan-target').hidden = mode !== 'target';
+}
 function fillSettings() {
   const s = S(), set = (id, v) => $('#' + id).value = v ?? '';
   set('s-sex', s.sex); set('s-age', s.age); set('s-height', s.heightCm); set('s-weight', curWeight()); set('s-bf', s.bodyFat);
   set('s-waist', s.waist); set('s-neck', s.neck); set('s-hip', s.hip); set('s-goal', s.goalWeight); set('s-goaldate', s.goalDate);
-  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl);
+  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl); set('s-deficit', s.manualDeficit); set('s-target', s.manualTarget); setPlanUI(s.planMode);
 }
 function renderSettings() {
+  const p = plan();
+  $('#plan-suggest').innerHTML = p && !p.expired
+    ? `<b>Suggested for your goal: ${r0(Math.abs(p.deficit))} kcal/day ${p.deficit >= 0 ? 'deficit' : 'surplus'}</b> (about ${r1(Math.abs(p.perWeek))} kg/week). Your calorie burn falls as you lose weight, so this is a little stricter than the simple 7,700 kcal/kg rule (${r0(Math.abs(p.simple))} kcal/day).${p.capped ? ' Limited to a safe pace.' : ''}`
+    : p?.expired ? 'Your goal date has passed. Choose a new date above.' : 'Set a goal weight and date above to get a suggested deficit.';
   const bf = bodyFat(), b = bmr(), bm = bmi();
   $('#derived').innerHTML = [[r1(bm), 'BMI · ' + bmiCat(bm)], [r1(bf.v) + '%', 'Body fat · ' + bf.src], [r0(b.v), 'BMR kcal · ' + b.f], [r0(b.v * num(S().baseline)), 'Maintenance at rest-day baseline']]
     .map(x => `<div class="stat"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
@@ -393,25 +455,36 @@ function addFood(entry) {
 }
 let sessionAdded = [];
 let pending = null;
+let pUnits = [];
+const pickerUnit = () => pUnits[+$('#picker-unit').value] || { l: 'g', p: 'g', g: 1 };
+const pickerGrams = () => num($('#picker-qty').value) * pickerUnit().g;
 function openPicker(item) {
-  pending = item;
+  pending = item; pUnits = [...(item.units || []), { l: 'g', p: 'g', g: 1 }];
   $('#picker-title').textContent = item.name;
   $('#picker-sub').textContent = `Per 100 g: ${r0(item.per100.kcal)} kcal · P ${r1(item.per100.protein)} · C ${r1(item.per100.carbs)} · F ${r1(item.per100.fat)} g · ${item.src}`;
-  $('#picker-grams').value = item.serving || 100;
+  $('#picker-unit').innerHTML = pUnits.map((u, i) => `<option value="${i}">${u.l === 'g' ? 'grams (g)' : `${esc(u.l)} · ${r0(u.g)} g`}</option>`).join('');
+  const hasUnit = !!item.units?.length;
+  $('#picker-unit').value = hasUnit ? 0 : pUnits.length - 1; $('#picker-qty').value = hasUnit ? 1 : (item.serving || 100);
   $('#picker-meal').innerHTML = mealOptions(addMeal);
-  const sv = item.serving || 100;
-  $('#picker-quick').innerHTML = [[.5, '½'], [1, '1×'], [1.5, '1½'], [2, '2×']].map(([m, l]) => `<button type="button" class="chipbtn" data-grams="${Math.round(sv * m)}">${l} · ${Math.round(sv * m)} g</button>`).join('');
-  updatePicker(); $('#picker').showModal();
+  renderQuick(); updatePicker(); $('#picker').showModal();
+}
+function renderQuick() {
+  const u = pickerUnit(), sv = pending.serving || 100;
+  $('#picker-quick').innerHTML = u.l === 'g'
+    ? [[.5, '½'], [1, '1×'], [1.5, '1½'], [2, '2×']].map(([m, l]) => `<button type="button" class="chipbtn" data-q="${Math.round(sv * m)}">${l} · ${Math.round(sv * m)} g</button>`).join('')
+    : [[.5, '½'], [1, '1'], [2, '2'], [3, '3'], [4, '4']].map(([n, l]) => `<button type="button" class="chipbtn" data-q="${n}">${l} ${esc(n === 1 ? u.l : u.p)}</button>`).join('');
 }
 const scaled = (item, g) => Object.fromEntries(NUTR.map(n => [n[0], (item.per100[n[0]] || 0) * g / 100]));
 function updatePicker() {
-  const s = scaled(pending, num($('#picker-grams').value));
+  const g = pickerGrams(), s = scaled(pending, g);
+  $('#picker-eq').textContent = pickerUnit().l === 'g' ? '' : `That is about ${r0(g)} g`;
   $('#picker-preview').innerHTML = `<div class="mp big"><b>${r0(s.kcal)}</b><span>kcal</span></div>` + [['Protein', 'protein'], ['Carbs', 'carbs'], ['Fat', 'fat']].map(([l, k]) => `<div class="mp"><b>${r1(s[k])}</b><span>${l} g</span></div>`).join('');
 }
 // spelling-tolerant matching: "koththu" = "kottu" = "kothu"
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/(.)\1+/g, '$1').replace(/h/g, '');
 function searchLocal(q) {
-  const w = norm(q).split(/\s+/).filter(Boolean);
+  // drop a plural "s" first ("eggs" -> "egg"), then normalise spelling
+  const w = q.toLowerCase().split(/\s+/).filter(Boolean).map(x => x.length > 3 && x.endsWith('s') ? x.slice(0, -1) : x).map(norm).filter(Boolean);
   return FOODS.filter(f => { const h = f.hay ||= norm(f.name + ' ' + (ALIAS[f.name] || '')); return w.every(x => h.includes(x)); });
 }
 function fromOFF(p) {
@@ -420,7 +493,7 @@ function fromOFF(p) {
   if (!p.product_name || kcal == null) return null;
   const sod = n.sodium_100g != null ? n.sodium_100g * 1000 : (n.salt_100g != null ? n.salt_100g * 400 : 0);
   const brand = (Array.isArray(p.brands) ? p.brands.join(',') : String(p.brands || '')).split(',')[0].trim();
-  return { name: p.product_name + (brand ? ` (${brand})` : ''), src: 'Open Food Facts', serving: Math.round(num(p.serving_quantity)) || 100,
+  return { name: p.product_name + (brand ? ` (${brand})` : ''), src: 'Open Food Facts', serving: Math.round(num(p.serving_quantity)) || 100, units: num(p.serving_quantity) > 0 ? [{ l: 'serving', p: 'servings', g: Math.round(num(p.serving_quantity)) }] : [],
     per100: { kcal, protein: n.proteins_100g || 0, carbs: n.carbohydrates_100g || 0, fat: n.fat_100g || 0, fiber: n.fiber_100g || 0, sugar: n.sugars_100g || 0, satfat: n['saturated-fat_100g'] || 0, sodium: sod } };
 }
 const OFF = 'https://world.openfoodfacts.org';
@@ -457,7 +530,7 @@ async function searchFoods(q) {
   const seq = ++searchSeq, box = $('#search-results'), local = searchLocal(q);
   const render = (items, note = '') => {
     box._items = items;
-    box.innerHTML = (items.length ? items.map((it, i) => `<div class="item"><div class="n"><b>${esc(it.name)}</b><span>${r0(it.per100.kcal)} kcal/100 g${it.serving !== 100 ? ` · ${r0(it.per100.kcal * it.serving / 100)} kcal per ${it.serving} g` : ''} · ${esc(it.src)}</span></div><button class="btn sm primary" data-pick="${i}">Add</button></div>`).join('')
+    box.innerHTML = (items.length ? items.map((it, i) => `<div class="item"><div class="n"><b>${esc(it.name)}</b><span>${r0(it.per100.kcal)} kcal/100 g · ${perLabel(it)} · ${esc(it.src)}</span></div><button class="btn sm primary" data-pick="${i}">Add</button></div>`).join('')
       : `<div class="empty">${ico('search')}<p>No built-in match.</p></div>`) + note;
   };
   render(local, q.length > 1 ? '<p class="muted small" id="s-load">Searching packaged foods online…</p>' : '');
@@ -534,7 +607,7 @@ async function identifyPhoto(file) {
     const out = (await c(url, labels, { hypothesis_template: 'a photo of {}, a type of food.' })).slice(0, 5);
     const rows = out.map(o => ({ o, i: labels.indexOf(o.label) })).filter(x => x.i >= 0);
     st.textContent = rows[0]?.o.score < .3 ? 'Not very confident. Pick the closest match, or use Search / Manual.' : 'Best matches. Tap Add, then adjust the grams (the serving is only a typical guess).';
-    box.insertAdjacentHTML('beforeend', '<div class="list">' + rows.map(({ o, i }) => `<div class="item"><div class="n"><b>${esc(FOODS[i].name)}</b><span>${Math.round(o.score * 100)}% match · ${r0(FOODS[i].per100.kcal * FOODS[i].serving / 100)} kcal per ${FOODS[i].serving} g</span></div><button class="btn sm primary" data-idpick="${i}">Add</button></div>`).join('') + '</div>');
+    box.insertAdjacentHTML('beforeend', '<div class="list">' + rows.map(({ o, i }) => `<div class="item"><div class="n"><b>${esc(FOODS[i].name)}</b><span>${Math.round(o.score * 100)}% match · ${perLabel(FOODS[i])}</span></div><button class="btn sm primary" data-idpick="${i}">Add</button></div>`).join('') + '</div>');
   } catch (e) { console.error('photo model failed', e); clf = null; st.textContent = `Could not run the recognition model: ${String(e?.message || e).slice(0, 160)}. Try again on Wi-Fi, or use barcode, Search or Enter manually.`; }
   finally { setTimeout(() => URL.revokeObjectURL(url), 60000); }
 }
@@ -547,7 +620,7 @@ function renderHistory() {
     const label = new Date(d + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
     return `<details class="card hday"><summary><b>${label}</b><span class="${x.foods.length ? (bal <= 0 ? 'good' : 'warn') : 'muted'}">${x.foods.length ? `${r0(t.kcal)} eaten · ${bal <= 0 ? '−' : '+'}${r0(Math.abs(bal))}` : 'no food logged'}</span></summary>
       <p class="muted small">Burned ${r0(e.total)} kcal · ${r0(x.steps)} steps${x.water ? ' · ' + fmtWater(x.water) + ' water' : ''} · P ${r0(t.protein)} C ${r0(t.carbs)} F ${r0(t.fat)} g${db.weights[d] ? ` · ${db.weights[d]} kg` : ''}</p>
-      <div class="list">${x.foods.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${f.meal}${f.grams ? ' · ' + r0(f.grams) + ' g' : ''} · P ${r0(f.protein)} C ${r0(f.carbs)} F ${r0(f.fat)}</span></div><div class="k">${r0(f.kcal)}</div></div>`).join('')}
+      <div class="list">${x.foods.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${f.meal}${itemSub(f) ? ' · ' + itemSub(f) : ''} · P ${r0(f.protein)} C ${r0(f.carbs)} F ${r0(f.fat)}</span></div><div class="k">${r0(f.kcal)}</div></div>`).join('')}
       ${x.workouts.map(w => `<div class="item"><div class="n"><b>${esc(w.type)}</b><span>${w.cat === 'gym' ? 'Gym' : 'Extra'} · ${w.min} min</span></div><div class="k">${r0(w.kcal)}</div></div>`).join('')}</div>
       <div class="row"><button class="btn sm" data-open-day="${d}">Open / edit this day</button></div></details>`;
   }).join('') : `<div class="card"><div class="empty">${ico('history')}<p>Your logged days will appear here.<br>Nothing is deleted unless you remove it.</p></div></div>`);
@@ -565,7 +638,7 @@ document.addEventListener('click', e => {
   if (t.dataset.min) { $('#workout-form').min.value = t.dataset.min; updateWorkoutPreview(); }
   if (t.dataset.cat) { const f = $('#workout-form'); f.cat.value = t.dataset.cat; $$('[data-cat]', f).forEach(b => { const on = b === t; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }); }
   if (t.dataset.sex) { $('#welcome-form').dataset.sex = t.dataset.sex; $$('[data-sex]').forEach(b => { const on = b === t; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }); }
-  if (t.dataset.grams) { $('#picker-grams').value = t.dataset.grams; updatePicker(); }
+  if (t.dataset.q) { $('#picker-qty').value = t.dataset.q; updatePicker(); }
   if (t.dataset.delFood) {
     const d = day(), i = d.foods.findIndex(f => f.id === t.dataset.delFood), gone = d.foods[i], dayKey = cur;
     if (gone) { d.foods.splice(i, 1); save(); render(); toast(`Removed ${gone.name}`, () => { day(dayKey).foods.splice(Math.min(i, day(dayKey).foods.length), 0, gone); save(); render(); }); }
@@ -579,6 +652,11 @@ document.addEventListener('click', e => {
   if (t.dataset.pick !== undefined) openPicker($('#search-results')._items[+t.dataset.pick]);
   if (t.dataset.re !== undefined) { const r = db.recent[+t.dataset.re]; if (r) addFood({ ...r, meal: addMeal }); }
   if (t.dataset.tab) showTab(t.dataset.tab);
+  if (t.dataset.plan) {
+    setPlanUI(t.dataset.plan); const p = plan(), b = budget();
+    if (t.dataset.plan === 'deficit' && $('#s-deficit').value === '') $('#s-deficit').value = Math.round((p && !p.expired ? p.deficit : 0) / 10) * 10;
+    if (t.dataset.plan === 'target' && $('#s-target').value === '') $('#s-target').value = Math.round(b.kcal / 10) * 10;
+  }
 });
 function showTab(name) {
   $$('#addsheet .tab').forEach(x => x.hidden = x.id !== 'tab-' + name);
@@ -612,12 +690,13 @@ $('#barcode-form').onsubmit = e => { e.preventDefault(); lookupBarcode($('#barco
 $('#search-form').onsubmit = e => { e.preventDefault(); searchFoods($('#search-input').value.trim()); };
 let searchT; // live results while typing
 $('#search-input').addEventListener('input', () => { clearTimeout(searchT); const q = $('#search-input').value.trim(); searchT = setTimeout(() => searchFoods(q), q.length > 1 ? 350 : 0); });
-$('#picker-grams').oninput = updatePicker;
+$('#picker-qty').oninput = updatePicker;
+$('#picker-unit').onchange = () => { const g = pickerGrams(); const u = pickerUnit(); $('#picker-qty').value = u.l === 'g' ? Math.round(g) || (pending.serving || 100) : 1; renderQuick(); updatePicker(); };
 $('#picker-cancel').onclick = () => $('#picker').close();
 $('#picker-form').onsubmit = () => {
-  const g = num($('#picker-grams').value); if (!(g > 0) || !pending) return;
+  const g = pickerGrams(), u = pickerUnit(), q = num($('#picker-qty').value); if (!(g > 0) || !pending) return;
   const s = scaled(pending, g);
-  addFood({ name: pending.name, meal: $('#picker-meal').value, grams: g, ...Object.fromEntries(Object.entries(s).map(([k, v]) => [k, Math.round(v * 10) / 10])) });
+  addFood({ name: pending.name, meal: $('#picker-meal').value, grams: Math.round(g * 10) / 10, ...(u.l !== 'g' ? { qtyLabel: `${+q.toFixed(2)} ${q === 1 ? u.l : u.p}` } : {}), ...Object.fromEntries(Object.entries(s).map(([k, v]) => [k, Math.round(v * 10) / 10])) });
 };
 $('#manual-form').onsubmit = e => {
   e.preventDefault(); const f = e.target, v = k => Math.max(0, num(f[k].value));
@@ -642,9 +721,11 @@ $('#weight-form').onsubmit = e => {
 };
 $('#settings-form').onsubmit = e => {
   e.preventDefault(); const g = id => $('#' + id).value, s = S(), oldGoal = s.goalWeight + '|' + s.goalDate;
+  if (g('s-planmode') === 'target' && !(num(g('s-target')) >= 800)) { toast('Enter a daily calorie target of at least 800 kcal.'); $('#s-target').focus(); return; }
+  if (g('s-planmode') === 'deficit' && g('s-deficit') === '') { toast('Enter your daily deficit in kcal (use a negative number for a surplus).'); $('#s-deficit').focus(); return; }
   Object.assign(s, { sex: g('s-sex'), age: num(g('s-age')), heightCm: num(g('s-height')), weightKg: num(g('s-weight')), bodyFat: g('s-bf'), waist: g('s-waist'),
     neck: g('s-neck'), hip: g('s-hip'), goalWeight: g('s-goal'), goalDate: g('s-goaldate'), baseline: num(g('s-base')), stepLenCm: g('s-steplen'),
-    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28, waterMl: g('s-water') });
+    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28, waterMl: g('s-water'), planMode: g('s-planmode'), manualDeficit: g('s-deficit'), manualTarget: g('s-target') });
   if (s.weightKg >= 20) db.weights[todayISO()] = s.weightKg;
   if (!num(s.startWeight) || oldGoal !== s.goalWeight + '|' + s.goalDate) s.startWeight = curWeight();
   save(); render(); toast('Settings saved');
@@ -677,9 +758,9 @@ async function api(method, path, body) {
 function schedulePush() { clearTimeout(pushT); pushT = setTimeout(pushNow, 1500); }
 async function pushNow() {
   pushT = null;
-  if (!user) return;
-  try { await api('PUT', '/api/data', JSON.stringify(db)); setSync('Synced'); }
-  catch (e) { if (e.status === 401) { user = null; renderAccount(); toast('Session expired. Sign in again.'); } else setSync('Offline: will retry on next change'); }
+  if (!user) return true;
+  try { await api('PUT', '/api/data', JSON.stringify(db)); setSync('Synced'); return true; }
+  catch (e) { if (e.status === 401) { user = null; lockApp('Your session expired. Please sign in again.'); } else setSync('Offline: will retry on next change'); return false; }
 }
 let syncMsg = '';
 function setSync(m) { syncMsg = m; const el = $('#sync-msg'); if (el) el.textContent = m; }
@@ -698,8 +779,8 @@ function loadGIS() {
   return window.google?.accounts?.id ? Promise.resolve() : new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 }
 async function onGoogleCredential(resp) {
-  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; renderAccount(); toast('Signed in'); await pull(); afterSignIn(); }
-  catch { toast('Sign-in failed. Please try again.'); }
+  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; try { localStorage.setItem('bmct.hint', JSON.stringify(user)); } catch { } renderAccount(); await pull(); afterSignIn(); }
+  catch { toast('Sign-in failed. Please try again.'); $('#gate-msg').textContent = 'Sign-in failed. Please try again.'; }
 }
 // Google Identity Services is set up once and can render its button anywhere (Profile page or the welcome screen).
 let gisReady = null;
@@ -727,7 +808,12 @@ async function renderAccount() {
       <p class="muted small" id="sync-msg">${esc(syncMsg || 'Signed in. Changes sync automatically between your devices.')}</p>
       <div class="row"><button class="btn" id="sync-now">Sync now</button><button class="btn" id="logout-btn">Sign out</button></div>`;
     $('#sync-now').onclick = async () => { await autoPull(); await pushNow(); toast('Synced'); };
-    $('#logout-btn').onclick = async () => { try { await api('POST', '/api/auth/logout', {}); } catch { } user = null; syncMsg = ''; window.google?.accounts?.id?.disableAutoSelect(); renderAccount(); toast('Signed out'); };
+    $('#logout-btn').onclick = async () => {
+      if (!confirm('Sign out? Your diary stays safe in your account and is removed from this device.')) return;
+      if (!(await pushNow()) && !confirm('Your latest changes could not be uploaded. Sign out anyway? Unsynced changes on this device will be lost.')) return;
+      try { await api('POST', '/api/auth/logout', {}); } catch { }
+      user = null; syncMsg = ''; guest = false; wipeLocal(); window.google?.accounts?.id?.disableAutoSelect(); lockApp();
+    };
     return;
   }
   setPill(); render();
@@ -735,9 +821,21 @@ async function renderAccount() {
   if (await setupGoogle()) google.accounts.id.renderButton($('#g-btn'), { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill' });
   else $('#g-msg').textContent = location.protocol === 'file:' ? 'Sign-in works on the deployed site.' : 'Sign-in is not available right now (offline, or not set up yet).';
 }
+function wipeLocal() {
+  db = DEFAULTS(); cur = todayISO();
+  try { localStorage.removeItem(KEY); localStorage.removeItem('bmct.hint'); } catch { }
+  fillSettings(); setPill();
+}
 async function initAuth() {
-  try { user = (await api('GET', '/api/me')).user; } catch { user = null; }
-  renderAccount(); if (user) await pull();
+  let offline = false;
+  try { user = (await api('GET', '/api/me')).user; }
+  catch (e) {
+    user = null;
+    if (e.status === 503) authDown = true;
+    else if (!e.status) { try { user = JSON.parse(localStorage.getItem('bmct.hint')); offline = !!user; } catch { } } // no network: stay usable if this device was signed in before
+  }
+  try { if (user && !offline) localStorage.setItem('bmct.hint', JSON.stringify(user)); else if (!user) localStorage.removeItem('bmct.hint'); } catch { }
+  renderAccount(); if (user && !offline) await pull();
 }
 // Automatic sync: pick up changes made on another device when you come back to the app (never while your own changes are waiting to upload).
 async function autoPull() {
@@ -747,7 +845,7 @@ async function autoPull() {
     if (!remote || (remote.updated || 0) <= (db.updated || 0)) return;
     const d = DEFAULTS(); db = { ...d, ...remote, settings: { ...d.settings, ...(remote.settings || {}) } };
     save(false); if (view !== 'settings') fillSettings(); render(); setSync('Synced from cloud'); toast('Updated from your other device');
-  } catch (e) { if (e.status === 401) { user = null; renderAccount(); } }
+  } catch (e) { if (e.status === 401) { user = null; lockApp('Your session expired. Please sign in again.'); } }
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') autoPull(); });
 window.addEventListener('focus', autoPull);
@@ -769,27 +867,23 @@ $('#theme-btn').onclick = () => {
 };
 applyTheme(savedTheme());
 
-// ---------- first-run welcome: sign in first, then a short profile ----------
-async function showWelcomeStep(step) {
-  $('#w-signin').hidden = step !== 'signin'; $('#welcome-form').hidden = step !== 'profile';
-  if (step === 'signin') {
-    if (await setupGoogle()) google.accounts.id.renderButton($('#g-btn-w'), { theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', width: 280 });
-    else $('#g-msg-w').textContent = 'Sign-in is not available right now. You can continue without an account.';
-  } else $('#w-hello').textContent = user ? `Hi ${(user.name || '').split(' ')[0] || 'there'}! ` : '';
+// ---------- first-run profile (shown after signing in, only for a brand-new account) ----------
+async function showWelcomeProfile() {
+  $('#w-hello').textContent = user ? `Hi ${(user.name || '').split(' ')[0] || 'there'}! ` : '';
+  if (!$('#welcome').open) $('#welcome').showModal();
 }
-async function maybeWelcome() {
-  if (db.onboarded) return;
+function maybeWelcome() {
+  if (db.onboarded || document.body.classList.contains('locked')) return;
   if (hasLocalData()) { db.onboarded = true; save(false); return; }
-  const ok = !user && await setupGoogle();
-  await showWelcomeStep(ok ? 'signin' : 'profile');
-  $('#welcome').showModal();
+  showWelcomeProfile();
 }
 // called after a successful Google sign-in and cloud pull
 function afterSignIn() {
+  unlockApp();
   if (hasLocalData() && !db.onboarded) { db.onboarded = true; save(false); }
-  const w = $('#welcome'); if (!w.open) return;
-  if (db.onboarded) { w.close(); render(); toast(`Welcome back, ${(user?.name || '').split(' ')[0] || 'there'}. Your data is synced.`); }
-  else showWelcomeStep('profile');
+  render();
+  if (db.onboarded) toast(`Welcome back, ${(user?.name || '').split(' ')[0] || 'there'}. Your data is synced.`);
+  else showWelcomeProfile();
 }
 function finishWelcome(skip) {
   db.onboarded = true;
@@ -804,11 +898,34 @@ function finishWelcome(skip) {
 }
 $('#welcome-form').onsubmit = e => { e.preventDefault(); finishWelcome(false); };
 $('#welcome-skip').onclick = () => finishWelcome(true);
-$('#w-nosignin').onclick = () => showWelcomeStep('profile');
-$('#welcome').addEventListener('cancel', e => { e.preventDefault(); $('#w-signin').hidden ? finishWelcome(true) : showWelcomeStep('profile'); });
+$('#welcome').addEventListener('cancel', e => { e.preventDefault(); finishWelcome(true); });
+
+// ---------- sign-in gate: when signed out, nothing but the login screen is visible ----------
+let guest = false, authDown = false;
+function unlockApp() { document.body.classList.remove('locked'); }
+function lockApp(msg) {
+  document.body.classList.add('locked');
+  $$('dialog[open]').forEach(d => d.close()); stopScan(); hideToast();
+  renderGate(msg);
+}
+async function renderGate(msg = '') {
+  $('#gate-spin').hidden = false; $('#g-btn-gate').hidden = true; $('#gate-guest').hidden = true; $('#gate-msg').textContent = '';
+  const ok = await setupGoogle();
+  $('#gate-spin').hidden = true;
+  if (ok) {
+    $('#g-btn-gate').hidden = false; $('#gate-msg').textContent = msg;
+    google.accounts.id.renderButton($('#g-btn-gate'), { theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', width: 280 });
+  } else $('#gate-msg').textContent = 'Sign-in is not available right now. Check your connection and try again.';
+  if (!ok || authDown) { $('#gate-guest').hidden = false; if (authDown) $('#gate-msg').textContent = 'Sign-in is not set up on the server yet.'; }
+}
+$('#gate-guest').onclick = () => { guest = true; unlockApp(); render(); maybeWelcome(); };
+async function bootAuth() {
+  await initAuth();
+  if (user || guest) { unlockApp(); render(); maybeWelcome(); } else lockApp();
+}
 
 window.addEventListener('hashchange', () => go(location.hash.slice(1)));
 $('#manual-form').meal.innerHTML = mealOptions(addMeal);
-fillSettings(); go(location.hash.slice(1) || 'today'); initAuth().then(maybeWelcome);
+fillSettings(); go(location.hash.slice(1) || 'today'); bootAuth();
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { });
