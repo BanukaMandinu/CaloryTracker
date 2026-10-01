@@ -499,3 +499,7 @@ body.locked > :not(#gate):not(script):not(svg){display:none!important}
 
 /* the hidden attribute must always win over component display rules (.btn, .gbtn, etc.) */
 [hidden]{display:none!important}
+
+.check{display:flex;align-items:center;gap:.7rem;font-size:1rem;color:var(--text);font-weight:600}
+.check input{width:1.3rem;height:1.3rem;min-height:0;margin:0;accent-color:var(--accent)}
+.check{flex-direction:row}

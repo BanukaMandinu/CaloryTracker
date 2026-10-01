@@ -85,14 +85,15 @@ export async function onRequest({ request, env, params }) {
 
   // Food search proxy (Open Food Facts blocks browser CORS on its fast search endpoint). Public, read-only, cached.
   if (route === 'foods' && method === 'GET') {
-    const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
+    const sp = new URL(request.url).searchParams, lk = sp.get('lk') === '1';
+    const q = (sp.get('q') || '').trim().slice(0, 60).replace(/["\\]/g, '');
     if (q.length < 2) return json({ products: [] });
     try {
-      const r = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&page_size=15&fields=product_name,brands,nutriments,serving_quantity`,
+      const r = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(lk ? q + ' countries_tags:"en:sri-lanka"' : q)}&page_size=30&fields=product_name,brands,nutriments,serving_quantity,product_quantity,countries_tags`,
         { headers: { 'user-agent': 'BMCaloryTracker/1.0 (personal app)' }, cf: { cacheTtl: 3600, cacheEverything: true } });
       if (!r.ok) throw new Error('upstream');
       const j = await r.json();
-      return json({ products: (j.hits || []).slice(0, 15) }, 200, { 'cache-control': 'public, max-age=3600' });
+      return json({ products: (j.hits || []).slice(0, 30) }, 200, { 'cache-control': 'public, max-age=3600' });
     } catch { return json({ products: [] }, 502); }
   }
 

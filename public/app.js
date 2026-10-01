@@ -57,34 +57,55 @@ const ALIAS = { 'Kottu roti, chicken': 'kottu koththu kothu kotthu kotu godamba'
   'Fish curry (ambul thiyal)': 'malu maalu ambulthiyal sour fish curry', 'Chicken curry (Sri Lankan)': 'kukul mas kukulmas', 'Egg curry': 'biththara bittara kiri hodi',
   'Dosa (thosai)': 'thosai dosai dosa', 'Vegetable roll / samosa': 'samosa rolls short eats', 'Fish cutlet': 'cutlet short eats', 'Fish roll': 'rolls short eats',
   'Paruppu vadai': 'vadai wade vada parippu vadai', 'Kavum (oil cake)': 'kavum konda kavum oil cake', 'Kokis': 'kokis', 'Kalu dodol': 'dodol',
-  'Buffalo curd': 'meekiri curd mee kiri yogurt', 'Coconut milk': 'pol kiri kiri', 'King coconut water (thambili)': 'thambili king coconut', 'Milk tea with sugar': 'plain tea kiri thé tea',
-  'Kola kanda (herbal porridge)': 'kola kenda kanda porridge', 'Roti / chapati': 'roti chapati godamba roti', 'Coconut, fresh': 'pol coconut', 'Pittu': 'puttu', 'Wattalapam': 'watalappan watalappam pudding' };
+  'Buffalo curd': 'meekiri curd mee kiri yogurt kotmale', 'Coconut milk': 'pol kiri kiri', 'King coconut water (thambili)': 'thambili king coconut', 'Milk tea with sugar': 'plain tea kiri thé tea',
+  'Kola kanda (herbal porridge)': 'kola kenda kanda porridge', 'Roti / chapati': 'roti chapati godamba roti', 'Coconut, fresh': 'pol coconut', 'Pittu': 'puttu', 'Wattalapam': 'watalappan watalappam pudding',
+  'Tomato sauce (ketchup)': 'kist md sauce ketchup tomato sos edinborough', 'Mixed fruit jam': 'kist md jam mixed fruit pineapple strawberry marmalade', 'Milk powder, full cream': 'anchor lakspray nespray ridgways kotmale dano powder milk',
+  'Condensed milk, sweetened': 'milkmaid condensed', 'Milk, whole': 'kotmale highland anchor fresh milk full cream pasteurised uht', 'Samaposha (cereal blend)': 'samaposha samposha sampoosha lanka cic cereal corn soya',
+  'Apple juice (Kist)': 'kist juice nectar' };
 // household units per food: [singular, plural, grams]. Typical sizes, so adjust if yours differ.
 const UNITS = {
   'Egg, whole boiled': [['egg', 'eggs', 50]], 'Egg, fried': [['egg', 'eggs', 46]], 'Egg, scrambled': [['egg', 'eggs', 61]], 'Egg, omelette': [['omelette', 'omelettes', 100]], 'Egg white, boiled': [['egg white', 'egg whites', 33]],
   'Chicken breast, cooked': [['piece', 'pieces', 120]], 'Salmon, cooked': [['fillet', 'fillets', 120]], 'Tuna, canned in water': [['can', 'cans', 112]],
   'Rice, white cooked': [['cup', 'cups', 160], ['plate', 'plates', 250]], 'Rice, brown cooked': [['cup', 'cups', 160], ['plate', 'plates', 250]], 'Red rice (kekulu), cooked': [['cup', 'cups', 160], ['plate', 'plates', 250]],
-  'Oats, dry': [['cup', 'cups', 80], ['tbsp', 'tbsp', 7]], 'Bread, white': [['slice', 'slices', 30]], 'Bread, wholewheat': [['slice', 'slices', 35]], 'Roti / chapati': [['roti', 'rotis', 45]], 'Pol roti': [['roti', 'rotis', 60]],
+  'Oats, dry': [['cup', 'cups', 80], ['tablespoon', 'tablespoons', 7]], 'Bread, white': [['slice', 'slices', 30]], 'Bread, wholewheat': [['slice', 'slices', 35]], 'Roti / chapati': [['roti', 'rotis', 45]], 'Pol roti': [['roti', 'rotis', 60]],
   'Pasta, cooked': [['cup', 'cups', 140]], 'Noodles, cooked': [['cup', 'cups', 160]], 'Fried rice': [['plate', 'plates', 250]],
   'Potato, boiled': [['potato', 'potatoes', 150]], 'Sweet potato, baked': [['potato', 'potatoes', 130]],
   'Banana': [['banana', 'bananas', 118]], 'Apple': [['apple', 'apples', 180]], 'Orange': [['orange', 'oranges', 130]], 'Mango': [['mango', 'mangoes', 200], ['cup sliced', 'cups sliced', 165]],
   'Grapes': [['cup', 'cups', 150]], 'Watermelon': [['slice', 'slices', 280]], 'Strawberries': [['cup', 'cups', 150]], 'Pineapple': [['slice', 'slices', 84]], 'Papaya': [['cup', 'cups', 140]], 'Avocado': [['half', 'halves', 100]],
   'Milk, whole': [['cup', 'cups', 240]], 'Milk, skim': [['cup', 'cups', 240]], 'Greek yogurt, plain 0%': [['cup', 'cups', 245]], 'Buffalo curd': [['cup', 'cups', 200]],
-  'Cheddar cheese': [['slice', 'slices', 28]], 'Butter': [['tsp', 'tsp', 5], ['tbsp', 'tbsp', 14]], 'Olive oil': [['tsp', 'tsp', 5], ['tbsp', 'tbsp', 14]], 'Peanut butter': [['tbsp', 'tbsp', 16]],
-  'Almonds': [['handful', 'handfuls', 28]], 'Honey': [['tsp', 'tsp', 7], ['tbsp', 'tbsp', 21]], 'Sugar': [['tsp', 'tsp', 4], ['tbsp', 'tbsp', 12.5]], 'Cola': [['can', 'cans', 330], ['glass', 'glasses', 250]],
-  'Coconut milk': [['cup', 'cups', 240], ['tbsp', 'tbsp', 15]], 'Milk tea with sugar': [['cup', 'cups', 200]], 'King coconut water (thambili)': [['king coconut', 'king coconuts', 300]], 'Kola kanda (herbal porridge)': [['bowl', 'bowls', 250]],
+  'Cheddar cheese': [['slice', 'slices', 28]], 'Butter': [['teaspoon', 'teaspoons', 5], ['tablespoon', 'tablespoons', 14]], 'Olive oil': [['teaspoon', 'teaspoons', 5], ['tablespoon', 'tablespoons', 14]], 'Peanut butter': [['tablespoon', 'tablespoons', 16]],
+  'Almonds': [['handful', 'handfuls', 28]], 'Honey': [['teaspoon', 'teaspoons', 7], ['tablespoon', 'tablespoons', 21]], 'Sugar': [['teaspoon', 'teaspoons', 4], ['tablespoon', 'tablespoons', 12.5]], 'Cola': [['can', 'cans', 330], ['glass', 'glasses', 250]],
+  'Coconut milk': [['cup', 'cups', 240], ['tablespoon', 'tablespoons', 15]], 'Milk tea with sugar': [['cup', 'cups', 200]], 'King coconut water (thambili)': [['king coconut', 'king coconuts', 300]], 'Kola kanda (herbal porridge)': [['bowl', 'bowls', 250]],
   'Lentils, cooked': [['cup', 'cups', 165]], 'Chickpeas, cooked': [['cup', 'cups', 165]], 'Dhal curry': [['serving', 'servings', 150]],
   'Pizza': [['slice', 'slices', 110]], 'Cheeseburger': [['burger', 'burgers', 150]], 'French fries': [['serving', 'servings', 120]], 'Cake': [['slice', 'slices', 80]], 'Cookie': [['cookie', 'cookies', 30]],
   'Ice cream, vanilla': [['scoop', 'scoops', 66]], 'Dark chocolate 70%': [['square', 'squares', 10]], 'Whey protein powder': [['scoop', 'scoops', 30]],
   'Kottu roti, chicken': [['plate', 'plates', 350]], 'Kottu roti, vegetable': [['plate', 'plates', 350]], 'Kottu roti, egg': [['plate', 'plates', 350]],
   'Hopper, plain (appa)': [['hopper', 'hoppers', 60]], 'Hopper, egg': [['egg hopper', 'egg hoppers', 100]], 'String hoppers (idiyappam)': [['string hopper', 'string hoppers', 15]],
   'Pittu': [['roll', 'rolls', 100]], 'Kiribath (milk rice)': [['piece', 'pieces', 60]], 'Rice & curry plate (veg + dhal)': [['plate', 'plates', 400]], 'Lamprais': [['packet', 'packets', 450]],
-  'Pol sambol': [['tbsp', 'tbsp', 20]], 'Lunu miris': [['tbsp', 'tbsp', 20]], 'Seeni sambol': [['tbsp', 'tbsp', 20]], 'Mallum (leaves with coconut)': [['serving', 'servings', 60]],
+  'Pol sambol': [['tablespoon', 'tablespoons', 20]], 'Lunu miris': [['tablespoon', 'tablespoons', 20]], 'Seeni sambol': [['tablespoon', 'tablespoons', 20]], 'Mallum (leaves with coconut)': [['serving', 'servings', 60]],
   'Jackfruit curry (polos)': [['serving', 'servings', 100]], 'Potato curry': [['serving', 'servings', 100]], 'Beetroot curry': [['serving', 'servings', 80]], 'Chicken curry (Sri Lankan)': [['piece', 'pieces', 100]],
   'Fish curry (ambul thiyal)': [['piece', 'pieces', 100]], 'Egg curry': [['serving', 'servings', 120]], 'Sambar': [['cup', 'cups', 200]],
   'Dosa (thosai)': [['dosa', 'dosas', 100]], 'Idli': [['idli', 'idlis', 40]], 'Vegetable roll / samosa': [['roll', 'rolls', 70]], 'Fish cutlet': [['cutlet', 'cutlets', 60]], 'Fish roll': [['roll', 'rolls', 80]],
-  'Paruppu vadai': [['vadai', 'vadai', 45]], 'Wattalapam': [['serving', 'servings', 100]], 'Kavum (oil cake)': [['kavum', 'kavum', 50]], 'Kokis': [['kokis', 'kokis', 20]], 'Kalu dodol': [['piece', 'pieces', 30]]
+  'Paruppu vadai': [['vadai', 'vadai', 45]], 'Wattalapam': [['serving', 'servings', 100]], 'Kavum (oil cake)': [['kavum', 'kavum', 50]], 'Kokis': [['kokis', 'kokis', 20]], 'Kalu dodol': [['piece', 'pieces', 30]],
+  'Tomato sauce (ketchup)': [['tablespoon', 'tablespoons', 17], ['teaspoon', 'teaspoons', 6]], 'Mixed fruit jam': [['tablespoon', 'tablespoons', 20], ['teaspoon', 'teaspoons', 7]],
+  'Milk powder, full cream': [['tablespoon', 'tablespoons', 8], ['cup', 'cups', 128]], 'Condensed milk, sweetened': [['tablespoon', 'tablespoons', 20]],
+  'Samaposha (cereal blend)': [['tablespoon', 'tablespoons', 8]], 'Chocolate flavoured milk (Kotmale)': [['glass', 'glasses', 250]], 'Flairs flavoured milk (Kotmale)': [['glass', 'glasses', 250]],
+  'Vanilla flavoured milk (Kotmale)': [['glass', 'glasses', 250]], 'Iced coffee (Kotmale)': [['glass', 'glasses', 250]], 'Apple juice (Kist)': [['glass', 'glasses', 250]]
 };
+// household measures offered for EVERY food (grams per measure depends on how dense the food is)
+const UNI = {
+  fat: [['tablespoon', 'tablespoons', 14], ['teaspoon', 'teaspoons', 4.7], ['cup', 'cups', 218]],
+  thick: [['tablespoon', 'tablespoons', 18], ['teaspoon', 'teaspoons', 6], ['cup', 'cups', 250]],
+  dry: [['tablespoon', 'tablespoons', 8], ['teaspoon', 'teaspoons', 3], ['cup', 'cups', 120]],
+  liquid: [['tablespoon', 'tablespoons', 15], ['teaspoon', 'teaspoons', 5], ['cup', 'cups', 240]]
+};
+function universalUnits(item) {
+  const n = item.name.toLowerCase();
+  const k = /\b(oil|ghee|butter|margarine|lard)\b/.test(n) ? 'fat'
+    : /(jam|marmalade|spread|honey|syrup|jelly|sauce|ketchup|paste|chutney|sambol|mayonnaise|curd|yogh?urt|cream|dhal|curry|pickle)/.test(n) ? 'thick'
+    : /(powder|flour|oats|sugar|salt|cereal|samaposha|cocoa|milo|horlicks|biscuit|cracker|rice|noodle|pasta|nuts?)/.test(n) ? 'dry' : 'liquid';
+  return UNI[k].map(([l, p, g]) => ({ l, p, g, approx: true }));
+}
 const perLabel = it => { const u = it.units?.[0]; return u ? `${r0(it.per100.kcal * u.g / 100)} kcal per ${u.l}` : `${r0(it.per100.kcal * (it.serving || 100) / 100)} kcal per ${it.serving || 100} g`; };
 const itemSub = f => f.qtyLabel ? `${f.qtyLabel} · ${r0(f.grams)} g` : (f.grams ? r0(f.grams) + ' g' : '');
 // "Rice, white cooked" ->"white cooked rice" (natural phrase for the image model)
@@ -139,15 +160,24 @@ const FOODS = [
   ['Kokis', 480, 6, 55, 26, 1, 7, 80, 8, 'LK'], ['Kalu dodol', 380, 2, 80, 7, 1, 50, 30, 6, 'LK'],
   ['Buffalo curd', 120, 4, 5, 9, 0, 5, 45, 6, 'LK'], ['Coconut milk', 197, 2, 3, 21, .5, 3, 15, 19, 'LK'],
   ['King coconut water (thambili)', 19, .2, 3.7, .2, 0, 3.5, 105, 0, 'LK'], ['Milk tea with sugar', 30, .8, 5, .8, 0, 5, 10, .5, 'LK'],
-  ['Kola kanda (herbal porridge)', 60, 1, 10, 2, 1, 0, 100, 1.5, 'LK']
-].map(f => ({ name: f[0], serving: SERV[f[0]] || 100, label: foodLabel(f[0]), units: (UNITS[f[0]] || []).map(([l, p, g]) => ({ l, p, g })), src: f[9] === 'LK' ? 'Sri Lankan, approx.' : 'built-in', per100: { kcal: f[1], protein: f[2], carbs: f[3], fat: f[4], fiber: f[5], sugar: f[6], sodium: f[7], satfat: f[8] } }));
+  ['Kola kanda (herbal porridge)', 60, 1, 10, 2, 1, 0, 100, 1.5, 'LK'],
+  // Supermarket staples: typical values for the category (brands such as Kist, MD, Anchor differ slightly, so check the pack)
+  ['Tomato sauce (ketchup)', 101, 1, 27.4, .1, .3, 22.8, 907, 0, 'LK'], ['Mixed fruit jam', 278, .4, 68.9, .1, 1.1, 48.5, 32, 0, 'LK'],
+  ['Milk powder, full cream', 496, 26.3, 38.4, 26.7, 0, 38.4, 371, 16.7, 'LK'], ['Condensed milk, sweetened', 321, 7.9, 54.4, 8.7, 0, 54.4, 127, 5.5, 'LK'],
+  // Sri Lankan products with values listed in Open Food Facts (community data; fiber, sugar and sodium not listed)
+  ['Samaposha (cereal blend)', 396, 18.9, 60.3, 6.7, 0, 0, 0, 0, 'OFF'],
+  ['Chocolate flavoured milk (Kotmale)', 87.1, 2.44, 14.12, 2.34, 0, 0, 0, 0, 'OFF'], ['Flairs flavoured milk (Kotmale)', 106, 2.64, 17.1, 2.85, 0, 0, 0, 0, 'OFF'],
+  ['Vanilla flavoured milk (Kotmale)', 114.8, 4.04, 13.28, 4.51, 0, 0, 0, 0, 'OFF'], ['Iced coffee (Kotmale)', 51.6, 2.74, 12.5, 2.9, 0, 0, 0, 0, 'OFF'],
+  ['Apple juice (Kist)', 46, .1, 11.3, .1, 0, 0, 0, 0, 'OFF'],
+  ['Cream cracker biscuit (Maliban Smart)', 444, 10.4, 70.2, 13.5, 0, 0, 0, 0, 'OFF'], ['Cheese bits (Maliban)', 445, 11, 75, 11.2, 0, 0, 0, 0, 'OFF']
+].map(f => ({ name: f[0], serving: SERV[f[0]] || 100, label: foodLabel(f[0]), units: (UNITS[f[0]] || []).map(([l, p, g]) => ({ l, p, g })), src: f[9] === 'LK' ? 'Sri Lankan / typical' : f[9] === 'OFF' ? 'Open Food Facts · Sri Lanka' : 'built-in', per100: { kcal: f[1], protein: f[2], carbs: f[3], fat: f[4], fiber: f[5], sugar: f[6], sodium: f[7], satfat: f[8] } }));
 
 // ---------- storage ----------
 const KEY = 'bmct.v1';
 const DEFAULTS = () => ({
   settings: { sex: 'male', age: 30, heightCm: 175, weightKg: 75, bodyFat: '', waist: '', neck: '', hip: '', goalWeight: '', goalDate: '',
     startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '', planMode: 'auto', manualDeficit: '', manualTarget: '', calibrate: 'on', maintOverride: '' },
-  days: {}, weights: {}, recent: []
+  days: {}, weights: {}, recent: [], custom: []
 });
 function load() {
   try {
@@ -432,17 +462,28 @@ function updateWorkoutPreview() {
   $('#w-preview').textContent = f.kcal.value ? `Using your figure: ${r0(num(f.kcal.value))} kcal.` : `Estimate: ${r0(workoutKcal(met, min))} kcal (MET ${met} at ${r1(curWeight())} kg).`;
 }
 
+// The day this user started: the earlier of the recorded start and their first logged entry or weigh-in.
+function startDate() {
+  const keys = [...Object.keys(db.days).filter(d => { const x = db.days[d]; return x.foods.length || x.steps || x.workouts.length || x.water; }), ...Object.keys(db.weights)].sort();
+  return [keys[0], db.startedOn].filter(Boolean).sort()[0] || todayISO();
+}
+// Chart window: the last 14 days, but never before the user's start date.
+const chartDays = () => {
+  const t = todayISO(), n = Math.max(1, Math.min(14, Math.round((new Date(t) - new Date(startDate())) / 864e5) + 1));
+  return Array.from({ length: n }, (_, i) => addDays(t, i - (n - 1)));
+};
+const chartTitle = () => { const n = chartDays().length; return n < 14 ? `Since you started · ${n} day${n > 1 ? 's' : ''}` : 'Last 14 days'; };
 function barsChart() {
-  const ds = Array.from({ length: 14 }, (_, i) => addDays(todayISO(), i - 13));
+  const ds = chartDays();
   const data = ds.map(d => ({ d, i: totals(d).kcal, e: expenditure(d).total, has: !!db.days[d]?.foods.length }));
-  const max = Math.max(500, ...data.map(x => Math.max(x.i, x.e))) * 1.1, W = 600, H = 190, bw = W / 14;
+  const max = Math.max(500, ...data.map(x => Math.max(x.i, x.e))) * 1.1, W = 600, H = 190, bw = W / Math.max(ds.length, 7);
   const y = v => H - 20 - v / max * (H - 30);
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calories eaten versus burned, last 14 days">` +
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calories in versus calories out, ${chartTitle()}">` +
     [0, .5, 1].map(f => `<line x1="0" x2="${W}" y1="${y(max * f / 1.1)}" y2="${y(max * f / 1.1)}" stroke="var(--line)"/><text x="2" y="${y(max * f / 1.1) - 3}">${r0(max * f / 1.1)}</text>`).join('') +
     data.map((x, k) => `<rect x="${k * bw + 6}" y="${y(x.e)}" width="${bw / 2 - 6}" height="${H - 20 - y(x.e)}" rx="3" fill="var(--line)"/>` +
       (x.has ? `<rect x="${k * bw + bw / 2}" y="${y(x.i)}" width="${bw / 2 - 6}" height="${H - 20 - y(x.i)}" rx="3" fill="${x.i <= x.e ? 'var(--accent)' : 'var(--warn)'}"/>` : '') +
       `<text x="${k * bw + bw / 2}" y="${H - 6}" text-anchor="middle">${x.d.slice(8)}</text>`).join('') + '</svg>' +
-    '<div class="legend"><span><i style="background:var(--line)"></i>Burned</span><span><i style="background:var(--accent)"></i>Eaten (deficit)</span><span><i style="background:var(--warn)"></i>Eaten (surplus)</span></div>';
+    '<div class="legend"><span><i style="background:var(--line)"></i>Calories out</span><span><i style="background:var(--accent)"></i>Calories in (deficit)</span><span><i style="background:var(--warn)"></i>Calories in (surplus)</span></div>';
 }
 function weightChart() {
   const es = Object.entries(db.weights).sort().slice(-60);
@@ -461,8 +502,8 @@ function renderProgress() {
   $('#ptabs').innerHTML = ptabs('progress');
   $('#weight-input').value = db.weights[cur] || '';
   const p = plan(), w = curWeight(), s = S(), bg = budget();
-  let goal = '<p class="muted">Set a goal weight and date in Settings.</p>';
-  if (p?.expired) goal = '<p class="warn">Your goal date has passed. Set a new date in Settings.</p>';
+  let goal = '<p class="muted">Set a goal weight and date in Profile.</p>';
+  if (p?.expired) goal = '<p class="warn">Your goal date has passed. Set a new date in Profile.</p>';
   else if (p) {
     const start = num(s.startWeight) || w, tot = start - p.goal;
     const prog = tot ? Math.min(100, Math.max(0, (start - w) / tot * 100)) : 100;
@@ -482,7 +523,7 @@ function renderProgress() {
     }
   }
   const bf = bodyFat(), bm = bmi();
-  $('#progress-body').innerHTML = `<div class="card"><h2>Your body</h2><div class="stats"><div class="stat"><b>${r1(w)}</b><span>kg</span></div><div class="stat"><b>${r1(bm)}</b><span>BMI · ${bmiCat(bm)}</span></div><div class="stat"><b>${r1(bf.v)}%</b><span>body fat</span></div></div><p class="muted small">Body fat: ${bf.src}. Add waist and neck measurements in Profile for a better estimate.</p></div><div class="card"><h2>Goal</h2>${goal}</div><div class="card"><h2>Last 14 days</h2>${barsChart()}${trend}</div><div class="card"><h2>Weight</h2>${weightChart()}</div>`;
+  $('#progress-body').innerHTML = `<div class="card"><h2>Your body</h2><div class="stats"><div class="stat"><b>${r1(w)}</b><span>kg</span></div><div class="stat"><b>${r1(bm)}</b><span>BMI · ${bmiCat(bm)}</span></div><div class="stat"><b>${r1(bf.v)}%</b><span>body fat</span></div></div><p class="muted small">Body fat: ${bf.src}. Add waist and neck measurements in Profile for a better estimate.</p></div><div class="card"><h2>Goal</h2>${goal}</div><div class="card"><h2>${chartTitle()}</h2>${barsChart()}${trend}</div><div class="card"><h2>Weight</h2>${weightChart()}</div>`;
 }
 
 function setPlanUI(mode) {
@@ -523,10 +564,10 @@ const pickerUnit = () => pUnits[+$('#picker-unit').value] || { l: 'g', p: 'g', g
 const pickerGrams = () => num($('#picker-qty').value) * pickerUnit().g;
 function openPicker(item) {
   if (document.body.classList.contains('locked')) return;
-  pending = item; pUnits = [...(item.units || []), { l: 'g', p: 'g', g: 1 }];
+  pending = item; const own = item.units || []; pUnits = [...own, ...universalUnits(item).filter(u => !own.some(x => x.l === u.l)), { l: 'g', p: 'g', g: 1 }];
   $('#picker-title').textContent = item.name;
   $('#picker-sub').textContent = `Per 100 g: ${r0(item.per100.kcal)} kcal · P ${r1(item.per100.protein)} · C ${r1(item.per100.carbs)} · F ${r1(item.per100.fat)} g · ${item.src}`;
-  $('#picker-unit').innerHTML = pUnits.map((u, i) => `<option value="${i}">${u.l === 'g' ? 'grams (g)' : `${esc(u.l)} · ${r0(u.g)} g`}</option>`).join('');
+  $('#picker-unit').innerHTML = pUnits.map((u, i) => `<option value="${i}">${u.l === 'g' ? 'grams (g)' : `${esc(u.l)} · ${u.approx ? '~' : ''}${+u.g.toFixed(1)} g`}</option>`).join('');
   const hasUnit = !!item.units?.length;
   $('#picker-unit').value = hasUnit ? 0 : pUnits.length - 1; $('#picker-qty').value = hasUnit ? 1 : (item.serving || 100);
   $('#picker-meal').innerHTML = mealOptions(addMeal);
@@ -549,60 +590,95 @@ const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').repla
 function searchLocal(q) {
   // drop a plural "s" first ("eggs" -> "egg"), then normalise spelling
   const w = q.toLowerCase().split(/\s+/).filter(Boolean).map(x => x.length > 3 && x.endsWith('s') ? x.slice(0, -1) : x).map(norm).filter(Boolean);
-  return FOODS.filter(f => { const h = f.hay ||= norm(f.name + ' ' + (ALIAS[f.name] || '')); return w.every(x => h.includes(x)); });
+  return customItems().filter(f => w.every(x => norm(f.name).includes(x))).concat(FOODS.filter(f => { const h = f.hay ||= norm(f.name + ' ' + (ALIAS[f.name] || '')); return w.every(x => h.includes(x)); }));
 }
 function fromOFF(p) {
   const n = p.nutriments || {};
-  const kcal = n['energy-kcal_100g'] ?? (n.energy_100g ? n.energy_100g / 4.184 : null);
-  if (!p.product_name || kcal == null) return null;
-  const sod = n.sodium_100g != null ? n.sodium_100g * 1000 : (n.salt_100g != null ? n.salt_100g * 400 : 0);
+  if (!p.product_name) return null;
   const brand = (Array.isArray(p.brands) ? p.brands.join(',') : String(p.brands || '')).split(',')[0].trim();
-  return { name: p.product_name + (brand ? ` (${brand})` : ''), src: 'Open Food Facts', serving: Math.round(num(p.serving_quantity)) || 100, units: num(p.serving_quantity) > 0 ? [{ l: 'serving', p: 'servings', g: Math.round(num(p.serving_quantity)) }] : [],
+  const name = p.product_name + (brand ? ` (${brand})` : ''), lk = (p.countries_tags || []).includes('en:sri-lanka');
+  let kcal = n['energy-kcal_100g'] ?? (n.energy_100g ? n.energy_100g / 4.184 : null);
+  if (kcal == null && (n.proteins_100g != null || n.carbohydrates_100g != null || n.fat_100g != null)) kcal = 4 * num(n.proteins_100g) + 4 * num(n.carbohydrates_100g) + 9 * num(n.fat_100g);
+  const sq = Math.round(num(p.serving_quantity)), pq = Math.round(num(p.product_quantity)), units = [];
+  if (sq > 0) units.push({ l: 'serving', p: 'servings', g: sq });
+  if (pq > 0 && pq !== sq) units.push({ l: 'pack', p: 'packs', g: pq });
+  if (kcal == null) return { name, src: 'Open Food Facts', lk, nodata: true, units };
+  const sod = n.sodium_100g != null ? n.sodium_100g * 1000 : (n.salt_100g != null ? n.salt_100g * 400 : 0);
+  return { name, src: lk ? 'Open Food Facts · Sri Lanka' : 'Open Food Facts', lk, serving: sq || 100, units,
     per100: { kcal, protein: n.proteins_100g || 0, carbs: n.carbohydrates_100g || 0, fat: n.fat_100g || 0, fiber: n.fiber_100g || 0, sugar: n.sugars_100g || 0, satfat: n['saturated-fat_100g'] || 0, sodium: sod } };
 }
 const OFF = 'https://world.openfoodfacts.org';
+const OFF_FIELDS = 'product_name,brands,nutriments,serving_quantity,product_quantity,countries_tags';
 async function lookupBarcode(code) {
   code = String(code).replace(/\D/g, ''); const st = $('#scan-status');
   if (code.length < 6) { st.textContent = 'That does not look like a barcode.'; return; }
   st.textContent = `Looking up ${code}…`;
   try {
-    const r = await fetch(`${OFF}/api/v2/product/${code}.json?fields=product_name,brands,nutriments,serving_quantity`);
+    const r = await fetch(`${OFF}/api/v2/product/${code}.json?fields=${OFF_FIELDS}`);
     const j = await r.json(), item = j.status === 1 ? fromOFF(j.product) : null;
-    if (item) { st.textContent = 'Found.'; openPicker(item); }
-    else st.textContent = `Barcode ${code} is not in the database (or has no nutrition data). Try Search or Enter manually.`;
+    if (item && !item.nodata) { st.textContent = 'Found.'; openPicker(item); }
+    else if (item) { st.textContent = ''; toast('Found the product, but it has no nutrition values. Add them from the pack label once.'); startLabelEntry(item.name); }
+    else { st.textContent = ''; toast('Not in the database yet. Add it from the pack label once.'); startLabelEntry(''); }
   } catch { st.textContent = 'Lookup failed. Check your connection, or use Search / Enter manually.'; }
 }
 // Online search: our own proxy first (fast, no CORS problems once deployed), then Open Food Facts directly.
+// A second query limited to Sri Lankan products is merged in, so local brands (Kist, MD, Kotmale...) are not buried.
 async function searchOnline(q) {
   const get = async url => { const c = new AbortController(), t = setTimeout(() => c.abort(), 9000); try { const r = await fetch(url, { signal: c.signal }); if (!r.ok) throw 0; return await r.json(); } finally { clearTimeout(t); } };
-  let j;
-  try { j = await get(`/api/foods?q=${encodeURIComponent(q)}`); }
-  catch { j = await get(`${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=15&fields=product_name,brands,nutriments,serving_quantity`); }
-  return (j.products || []).map(fromOFF).filter(Boolean);
+  const one = async lk => {
+    try { return await get(`/api/foods?q=${encodeURIComponent(q)}${lk ? '&lk=1' : ''}`); }
+    catch { return await get(`${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(q)}${lk ? '&tagtype_0=countries&tag_contains_0=contains&tag_0=sri-lanka' : ''}&search_simple=1&action=process&json=1&page_size=30&fields=${OFF_FIELDS}`); }
+  };
+  const [a, b] = await Promise.allSettled([one(false), one(true)]);
+  if (a.status === 'rejected' && b.status === 'rejected') throw a.reason;
+  const seen = new Set(), items = [];
+  for (const j of [b.value, a.value]) for (const p of (j?.products || [])) { const it = fromOFF(p); if (it && !seen.has(it.name.toLowerCase())) { seen.add(it.name.toLowerCase()); items.push(it); } }
+  const rank = o => (o.lk ? 0 : 2) + (o.nodata ? 1 : 0); // Sri Lankan with data first, products without nutrition last
+  return items.sort((x, y) => rank(x) - rank(y));
 }
 let searchSeq = 0;
+// "My foods": products you saved from a pack label (per 100 g), so they work with units and search forever.
+const customItems = () => (db.custom || []).map(c => ({ ...c, src: 'My food', custom: true, units: [{ l: 'serving', p: 'servings', g: c.serving || 100 }] }));
+function startLabelEntry(name) {
+  if (!$('#addsheet').open) openAdd();
+  showTab('manual'); const f = $('#manual-form'); setMmode('per100'); f.name.value = name || ''; (name ? f.kcal : f.name).focus();
+}
+function setMmode(mode) {
+  const f = $('#manual-form'); f.mode.value = mode;
+  $$('[data-mmode]').forEach(b => { const on = b.dataset.mmode === mode; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+  $('#m-amount').hidden = $('#m-save').hidden = mode !== 'per100';
+  $('#m-amount input').required = mode === 'per100';
+}
 function showRecent() {
-  const box = $('#search-results'); ++searchSeq; box._items = [];
+  const box = $('#search-results'); ++searchSeq;
+  const mine = customItems(); box._items = mine;
   const order = db.recent.map((r, i) => i).sort((x, y) => (db.recent[y].meal === addMeal) - (db.recent[x].meal === addMeal));
   const usual = db.recent.some(r => r.meal === addMeal);
-  box.innerHTML = db.recent.length
+  const myHtml = mine.length ? '<h3>My foods</h3>' + mine.map((it, i) => `<div class="item"><div class="n"><b>${esc(it.name)}</b><span>${r0(it.per100.kcal)} kcal/100 g · saved from label</span></div><button class="btn sm primary" data-pick="${i}">Add</button><button class="icon-btn sm" data-delcustom="${esc(it.id)}" aria-label="Remove ${esc(it.name)} from my foods">${ico('trash')}</button></div>`).join('') : '';
+  const recentHtml = db.recent.length
     ? `<h3>${usual ? `Your usual ${addMeal.toLowerCase()} foods` : 'Recent foods'}</h3>` + order.slice(0, 12).map(i => { const r = db.recent[i]; return `<div class="item"><div class="n"><b>${esc(r.name)}</b><span>${r0(r.kcal)} kcal · P ${r0(r.protein)} · C ${r0(r.carbs)} · F ${r0(r.fat)} g</span></div><button class="btn sm primary" data-re="${i}" aria-label="Add ${esc(r.name)} again">Add</button></div>`; }).join('')
-    : `<div class="empty">${ico('utensils')}<p><b>Search to get started</b><br>Try “kottu”, “rice” or “banana”. Foods you add will be saved here for one-tap logging.</p></div>`;
+    : '';
+  box.innerHTML = myHtml + recentHtml || `<div class="empty">${ico('utensils')}<p><b>Search to get started</b><br>Try “kottu”, “rice”, “kist jam” or “banana”. Foods you add are saved here for one-tap logging.</p></div>`;
 }
 async function searchFoods(q) {
   if (!q) return showRecent();
   const seq = ++searchSeq, box = $('#search-results'), local = searchLocal(q);
+  const row = (it, i) => it.nodata
+    ? `<div class="item"><div class="n"><b>${esc(it.name)}</b><span>No nutrition values listed yet · ${esc(it.src)}</span></div><button class="btn sm" data-nodata="${i}">Add from label</button></div>`
+    : `<div class="item"><div class="n"><b>${esc(it.name)}</b><span>${r0(it.per100.kcal)} kcal/100 g · ${perLabel(it)} · ${esc(it.src)}</span></div><button class="btn sm primary" data-pick="${i}">Add</button></div>`;
   const render = (items, note = '') => {
     box._items = items;
-    box.innerHTML = (items.length ? items.map((it, i) => `<div class="item"><div class="n"><b>${esc(it.name)}</b><span>${r0(it.per100.kcal)} kcal/100 g · ${perLabel(it)} · ${esc(it.src)}</span></div><button class="btn sm primary" data-pick="${i}">Add</button></div>`).join('')
-      : `<div class="empty">${ico('search')}<p>No built-in match.</p></div>`) + note;
+    const add = `<div class="item"><div class="n"><b>Can't find it?</b><span>Save it once from the pack label and it is yours for good.</span></div><button class="btn sm" data-labelnew="${esc(q)}">Add from label</button></div>`;
+    box.innerHTML = (items.length ? items.map(row).join('') : `<div class="empty">${ico('search')}<p>No match yet.</p></div>`) + note + add;
   };
   render(local, q.length > 1 ? '<p class="muted small" id="s-load">Searching packaged foods online…</p>' : '');
   if (q.length < 2) return;
   try {
     const online = await searchOnline(q); if (seq !== searchSeq) return;
     const seen = new Set(local.map(f => f.name.toLowerCase()));
-    render(local.concat(online.filter(o => !seen.has(o.name.toLowerCase()))), online.length ? '' : '<p class="muted small">No online matches. Try another spelling, or use Manual.</p>');
+    const rest = online.filter(o => !seen.has(o.name.toLowerCase()));
+    const withData = rest.filter(o => !o.nodata), noData = rest.filter(o => o.nodata).slice(0, 5);
+    render(local.concat(withData, noData), online.length ? '' : '<p class="muted small">No online matches. Try another spelling.</p>');
   } catch { if (seq === searchSeq) render(local, '<p class="muted small">Online search unavailable right now. Showing built-in foods only.</p>'); }
 }
 
@@ -716,6 +792,10 @@ document.addEventListener('click', e => {
   if (t.dataset.pick !== undefined) openPicker($('#search-results')._items[+t.dataset.pick]);
   if (t.dataset.re !== undefined) { const r = db.recent[+t.dataset.re]; if (r) addFood({ ...r, meal: addMeal }); }
   if (t.dataset.tab) showTab(t.dataset.tab);
+  if (t.dataset.mmode) setMmode(t.dataset.mmode);
+  if (t.dataset.labelnew !== undefined) startLabelEntry(t.dataset.labelnew);
+  if (t.dataset.nodata !== undefined) startLabelEntry($('#search-results')._items[+t.dataset.nodata]?.name || '');
+  if (t.dataset.delcustom) { const gone = (db.custom || []).find(c => c.id === t.dataset.delcustom); db.custom = (db.custom || []).filter(c => c.id !== t.dataset.delcustom); save(); showRecent(); if (gone) toast(`Removed ${gone.name}`, () => { db.custom.unshift(gone); save(); showRecent(); }); }
   if (t.dataset.plan) {
     setPlanUI(t.dataset.plan); const p = plan(), b = budget();
     if (t.dataset.plan === 'deficit' && $('#s-deficit').value === '') $('#s-deficit').value = Math.round((p && !p.expired ? p.deficit : 0) / 10) * 10;
@@ -768,7 +848,14 @@ $('#manual-form').onsubmit = e => {
   const en = { name: f.name.value.trim().slice(0, 80), meal: f.meal.value, protein: v('protein'), carbs: v('carbs'), fat: v('fat'), fiber: v('fiber'), sugar: v('sugar'), satfat: v('satfat'), sodium: v('sodium') };
   en.kcal = f.kcal.value === '' ? Math.round(en.protein * 4 + en.carbs * 4 + en.fat * 9) : v('kcal');
   if (!en.name) return;
-  addFood(en); f.reset(); f.meal.innerHTML = mealOptions(addMeal);
+  if (f.mode.value === 'per100') { // numbers are per 100 g from the pack label: scale to the amount eaten
+    const amount = v('amount'); if (!(amount > 0)) { toast('Enter how much you ate.'); return; }
+    const per100 = Object.fromEntries(['kcal', 'protein', 'carbs', 'fat', 'fiber', 'sugar', 'satfat', 'sodium'].map(k => [k, en[k]]));
+    if (f.save.checked) { db.custom = [{ id: uid(), name: en.name, per100, serving: amount }, ...(db.custom || []).filter(c => c.name.toLowerCase() !== en.name.toLowerCase())].slice(0, 200); }
+    for (const k of Object.keys(per100)) en[k] = Math.round(per100[k] * amount / 100 * 10) / 10;
+    en.grams = amount;
+  }
+  addFood(en); f.reset(); setMmode('portion'); f.meal.innerHTML = mealOptions(addMeal);
 };
 $('#steps-form').onsubmit = e => { e.preventDefault(); day().steps = Math.max(0, Math.round(num($('#steps-input').value))); save(); render(); toast('Steps saved'); };
 $('#w-type').innerHTML = WORKOUTS.map(w => `<option>${w[0]}</option>`).join('');
@@ -963,7 +1050,7 @@ function afterSignIn() {
   else showWelcomeProfile();
 }
 function finishWelcome(skip) {
-  db.onboarded = true;
+  db.onboarded = true; db.startedOn ||= todayISO();
   if (!skip) {
     const f = $('#welcome-form'), s = S();
     Object.assign(s, { sex: f.dataset.sex || 'male', age: num(f.age.value) || 30, heightCm: num(f.height.value) || 175, weightKg: num(f.weight.value) || 75,

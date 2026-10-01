@@ -380,6 +380,13 @@
     <h2>Enter manually</h2>
     <form id="manual-form" class="grid-form">
       <label class="span2">Food name<input name="name" required maxlength="80" placeholder="Rice & chicken"></label>
+      <div class="seg2 span2" role="radiogroup" aria-label="What the numbers are for">
+        <button type="button" class="on" data-mmode="portion" role="radio" aria-checked="true">This portion</button>
+        <button type="button" data-mmode="per100" role="radio" aria-checked="false">Per 100 g (pack label)</button>
+      </div>
+      <input type="hidden" name="mode" value="portion">
+      <label class="span2" id="m-amount" hidden>Amount you ate (g or ml)<input name="amount" type="number" min="1" step="any" inputmode="decimal" placeholder="e.g. 30"></label>
+      <label class="span2 check" id="m-save" hidden><input type="checkbox" name="save" checked> Save to My foods for next time</label>
       <label>Meal<select name="meal"></select></label>
       <label>Calories (kcal)<input name="kcal" type="number" min="0" step="any" inputmode="decimal"></label>
       <label>Protein (g)<input name="protein" type="number" min="0" step="any" inputmode="decimal"></label>
