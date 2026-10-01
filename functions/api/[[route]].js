@@ -60,6 +60,9 @@ async function verifyGoogleToken(idToken, clientId) {
   return claims;
 }
 
+// Stable, non-reversible account id for the client (never the raw Google sub).
+const uidOf = async sub => [...new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode('uid:' + sub)))].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
+
 export async function onRequest({ request, env, params }) {
   const route = [].concat(params.route || []).join('/');
   const method = request.method;
@@ -109,7 +112,7 @@ export async function onRequest({ request, env, params }) {
       await env.DATA.put(`profile:${c.sub}`, JSON.stringify({ name: user.name, email: user.email }));
       const exp = Math.floor(Date.now() / 1000) + SESSION_DAYS * 86400;
       await audit('login', c.sub);
-      return json({ user: { name: user.name, email: user.email, picture: user.picture } }, 200,
+      return json({ user: { uid: await uidOf(c.sub), name: user.name, email: user.email, picture: user.picture } }, 200,
         { 'set-cookie': cookie(await sign({ sub: c.sub, name: user.name, email: user.email, picture: user.picture, exp }, env.SESSION_SECRET), SESSION_DAYS * 86400) });
     } catch { return json({ error: 'invalid credential' }, 401); }
   }
@@ -120,7 +123,7 @@ export async function onRequest({ request, env, params }) {
   }
 
   const session = await readSession(request, env);
-  if (route === 'me' && method === 'GET') return session ? json({ user: { name: session.name, email: session.email, picture: session.picture } }) : json({ user: null });
+  if (route === 'me' && method === 'GET') return session ? json({ user: { uid: await uidOf(session.sub), name: session.name, email: session.email, picture: session.picture } }) : json({ user: null });
   if (!session) return json({ error: 'unauthenticated' }, 401);
 
   if (route === 'data') {
@@ -135,6 +138,8 @@ export async function onRequest({ request, env, params }) {
       let db; try { db = JSON.parse(text); } catch { return json({ error: 'bad json' }, 400); }
       if (!db || typeof db !== 'object' || Array.isArray(db) || typeof db.days !== 'object' || typeof db.settings !== 'object' || typeof db.weights !== 'object')
         return json({ error: 'bad shape' }, 400);
+      // isolation: the copy must be stamped with THIS account's id, so one account's diary can never be saved into another's
+      if (db.owner !== await uidOf(session.sub)) return json({ error: 'owner mismatch' }, 409);
       await env.DATA.put(key, text);
       await audit('data_write', session.sub);
       return json({ ok: true });

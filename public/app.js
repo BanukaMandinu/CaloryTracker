@@ -158,8 +158,8 @@ function load() {
 }
 let db = load();
 let storageOK = true;
-function save(push = true) {
-  db.updated = Date.now();
+function save(push = true, touch = true) {
+  if (touch) db.updated = Date.now();
   try { localStorage.setItem(KEY, JSON.stringify(db)); }
   catch { if (storageOK) { storageOK = false; toast('Storage unavailable: data will be lost on close. Export a backup.'); } }
   if (push && user) schedulePush();
@@ -742,13 +742,13 @@ $('#import-file').onchange = async e => {
     const j = JSON.parse(await f.text());
     if (!j || typeof j.days !== 'object' || typeof j.settings !== 'object') throw 0;
     if (!confirm('Replace all current data with this backup?')) return;
-    const d = DEFAULTS(); db = { ...d, ...j, settings: { ...d.settings, ...j.settings } }; save(); fillSettings(); render(); toast('Backup imported');
+    const d = DEFAULTS(); db = { ...d, ...j, settings: { ...d.settings, ...j.settings } }; if (user) db.owner = ownerOf(user); else delete db.owner; save(); fillSettings(); render(); toast('Backup imported');
   } catch { toast('That file is not a valid backup.'); }
 };
 $('#reset-btn').onclick = async () => {
   if (!confirm(user ? 'Erase ALL data on this device AND your cloud copy? This cannot be undone.' : 'Erase ALL data on this device? This cannot be undone.')) return;
   if (user) { try { await api('DELETE', '/api/data'); } catch { toast('Could not reach the server; cloud copy not erased.'); return; } }
-  db = DEFAULTS(); save(false); fillSettings(); render(); toast('All data erased');
+  db = DEFAULTS(); if (user) db.owner = ownerOf(user); save(false); fillSettings(); render(); toast('All data erased');
 };
 // ---------- account (Google sign-in) + cloud sync ----------
 let user = null, pushT = null;
@@ -761,27 +761,39 @@ function schedulePush() { clearTimeout(pushT); pushT = setTimeout(pushNow, 1500)
 async function pushNow() {
   pushT = null;
   if (!user) return true;
+  const me = ownerOf(user);
+  if (db.owner && db.owner !== me) return false; // never upload another account's copy
+  db.owner = me;
   try { await api('PUT', '/api/data', JSON.stringify(db)); setSync('Synced'); return true; }
   catch (e) { if (e.status === 401) { user = null; lockApp('Your session expired. Please sign in again.'); } else setSync('Offline: will retry on next change'); return false; }
 }
 let syncMsg = '';
 function setSync(m) { syncMsg = m; const el = $('#sync-msg'); if (el) el.textContent = m; }
 const hasLocalData = () => Object.values(db.days).some(d => d.foods.length || d.steps || d.workouts.length || d.water) || Object.keys(db.weights).length > 0;
+// Every local copy is stamped with the account that owns it. Another account's diary is never shown or uploaded.
+const ownerOf = u => u?.uid || (u?.email || '').toLowerCase();
+function claimDevice() {
+  const me = ownerOf(user); if (!me || db.owner === me) return;
+  if (db.owner) db = DEFAULTS();                                   // belongs to a different account: discard it
+  else if (hasLocalData() && !confirm(`This device has diary entries that are not linked to an account. Add them to ${user.email}? Choose Cancel to discard them.`)) db = DEFAULTS();
+  db.owner = me; save(false, false); fillSettings();
+}
+function adoptRemote(remote) {
+  const d = DEFAULTS(); db = { ...d, ...remote, settings: { ...d.settings, ...(remote.settings || {}) }, owner: ownerOf(user) };
+  save(false); if (view !== 'settings') fillSettings(); render(); setSync('Synced from cloud');
+}
 async function pull() {
   try {
     const { db: remote } = await api('GET', '/api/data');
     if (!remote) { await pushNow(); return; }
-    const d = DEFAULTS(), remoteNewer = (remote.updated || 0) > (db.updated || 0);
-    if (remoteNewer && hasLocalData() && !confirm('Cloud data found for this account. OK = use the cloud data, Cancel = keep this device\'s data and overwrite the cloud copy.')) { await pushNow(); return; }
-    if (remoteNewer) { db = { ...d, ...remote, settings: { ...d.settings, ...(remote.settings || {}) } }; save(false); fillSettings(); render(); setSync('Synced from cloud'); }
-    else await pushNow();
+    if ((remote.updated || 0) > (db.updated || 0)) adoptRemote(remote); else await pushNow();
   } catch { setSync('Could not sync'); }
 }
 function loadGIS() {
   return window.google?.accounts?.id ? Promise.resolve() : new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 }
 async function onGoogleCredential(resp) {
-  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; try { localStorage.setItem('bmct.hint', JSON.stringify(user)); } catch { } renderAccount(); await pull(); afterSignIn(); }
+  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; try { localStorage.setItem('bmct.hint', JSON.stringify(user)); } catch { } claimDevice(); renderAccount(); await pull(); afterSignIn(); }
   catch { toast('Sign-in failed. Please try again.'); $('#gate-msg').textContent = 'Sign-in failed. Please try again.'; }
 }
 // Google Identity Services is set up once and can render its button anywhere (Profile page or the welcome screen).
@@ -837,6 +849,7 @@ async function initAuth() {
     else if (!e.status) { try { user = JSON.parse(localStorage.getItem('bmct.hint')); offline = !!user; } catch { } } // no network: stay usable if this device was signed in before
   }
   try { if (user && !offline) localStorage.setItem('bmct.hint', JSON.stringify(user)); else if (!user) localStorage.removeItem('bmct.hint'); } catch { }
+  if (user && !offline) claimDevice();
   renderAccount(); if (user && !offline) await pull();
 }
 // Automatic sync: pick up changes made on another device when you come back to the app (never while your own changes are waiting to upload).
@@ -845,8 +858,7 @@ async function autoPull() {
   try {
     const { db: remote } = await api('GET', '/api/data');
     if (!remote || (remote.updated || 0) <= (db.updated || 0)) return;
-    const d = DEFAULTS(); db = { ...d, ...remote, settings: { ...d.settings, ...(remote.settings || {}) } };
-    save(false); if (view !== 'settings') fillSettings(); render(); setSync('Synced from cloud'); toast('Updated from your other device');
+    adoptRemote(remote); toast('Updated from your other device');
   } catch (e) { if (e.status === 401) { user = null; lockApp('Your session expired. Please sign in again.'); } }
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') autoPull(); });
