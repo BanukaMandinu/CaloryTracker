@@ -487,8 +487,11 @@ async function scanPhoto(file) {
 let clf = null;
 async function getClassifier(onProgress) {
   if (clf) return clf;
-  const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
-  clf = await pipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32', { progress_callback: onProgress });
+  const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
+  env.allowLocalModels = false;
+  // phones (especially iOS Safari) are strict: no worker threads, small quantised model, plain WASM backend
+  env.backends.onnx.wasm.numThreads = 1; env.backends.onnx.wasm.proxy = false;
+  clf = await pipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32', { device: 'wasm', dtype: 'q8', progress_callback: onProgress });
   return clf;
 }
 async function identifyPhoto(file) {
@@ -503,7 +506,7 @@ async function identifyPhoto(file) {
     const rows = out.map(o => ({ o, i: labels.indexOf(o.label) })).filter(x => x.i >= 0);
     st.textContent = rows[0]?.o.score < .3 ? 'Not very confident. Pick the closest match, or use Search / Manual.' : 'Best matches. Tap Add, then adjust the grams (the serving is only a typical guess).';
     box.insertAdjacentHTML('beforeend', '<div class="list">' + rows.map(({ o, i }) => `<div class="item"><div class="n"><b>${esc(FOODS[i].name)}</b><span>${Math.round(o.score * 100)}% match · ${r0(FOODS[i].per100.kcal * FOODS[i].serving / 100)} kcal per ${FOODS[i].serving} g</span></div><button class="btn sm primary" data-idpick="${i}">Add</button></div>`).join('') + '</div>');
-  } catch (e) { st.textContent = 'Could not run the recognition model (needs internet the first time, and a modern browser). Try barcode, Search or Enter manually.'; }
+  } catch (e) { console.error('photo model failed', e); clf = null; st.textContent = `Could not run the recognition model: ${String(e?.message || e).slice(0, 160)}. Try again on Wi-Fi, or use barcode, Search or Enter manually.`; }
   finally { setTimeout(() => URL.revokeObjectURL(url), 60000); }
 }
 
