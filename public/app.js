@@ -117,7 +117,7 @@ const FOODS = [
 const KEY = 'bmct.v1';
 const DEFAULTS = () => ({
   settings: { sex: 'male', age: 30, heightCm: 175, weightKg: 75, bodyFat: '', waist: '', neck: '', hip: '', goalWeight: '', goalDate: '',
-    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '' },
+    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '' },
   days: {}, weights: {}, recent: []
 });
 function load() {
@@ -210,20 +210,21 @@ function targets() {
 let toastT, undoFn = null;
 function toast(msg, undo) {
   const t = $('#toast'); $('#toast-t').textContent = msg; undoFn = undo || null; $('#toast-undo').hidden = !undo;
-  t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), undo ? 6000 : 2600);
+  try { if (t.showPopover && !t.matches(':popover-open')) t.showPopover(); } catch { }
+  t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(hideToast, undo ? 6000 : 2600);
 }
-$('#toast-undo').onclick = () => { const f = undoFn; undoFn = null; $('#toast').classList.remove('on'); f?.(); };
+function hideToast() { const t = $('#toast'); t.classList.remove('on'); try { if (t.hidePopover && t.matches(':popover-open')) t.hidePopover(); } catch { } }
+$('#toast-undo').onclick = () => { const f = undoFn; undoFn = null; hideToast(); f?.(); };
 const mealOptions = sel => MEALS.map(m => `<option${m === sel ? ' selected' : ''}>${m}</option>`).join('');
 const defaultMeal = () => { const h = new Date().getHours(); return h < 11 ? 'Breakfast' : h < 15 ? 'Lunch' : h < 21 ? 'Dinner' : 'Snack'; };
 let addMeal = defaultMeal();
 let view = 'today';
 function go(v) {
+  if (v === 'add') { history.replaceState(null, '', '#' + view); openAdd(); if (!$('.view.on')) go(view); return; }
   if (!$('#view-' + v)) v = 'today';
-  if (view === 'add' && v !== 'add') stopScan();
   view = v;
   $$('.view').forEach(e => e.classList.toggle('on', e.id === 'view-' + v));
   $$('#nav a').forEach(a => a.classList.toggle('on', a.dataset.view === v || a.dataset.also === v));
-  if (v === 'add') showTab('home');
   render(); window.scrollTo(0, 0);
 }
 function renderDayStrip() {
@@ -232,9 +233,9 @@ function renderDayStrip() {
   $('#datenav').innerHTML = `<button class="icon-btn" data-shift="-1" aria-label="Previous day">${ico('left')}</button><div class="dtitle"><b>${label}</b><span>${dt.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</span></div><button class="icon-btn" data-shift="1" aria-label="Next day" ${cur >= t ? 'disabled' : ''}>${ico('right')}</button>`;
 }
 function render() {
-  $('#datenav').hidden = !['today', 'add', 'activity'].includes(view);
+  $('#datenav').hidden = !['today', 'activity'].includes(view);
   if (!$('#datenav').hidden) renderDayStrip();
-  ({ today: renderToday, history: renderHistory, activity: renderActivity, progress: renderProgress, settings: renderSettings, add: renderAdd }[view] || (() => { }))();
+  ({ today: renderToday, history: renderHistory, activity: renderActivity, progress: renderProgress, settings: renderSettings }[view] || (() => { }))();
 }
 const ptabs = a => `<nav class="ptabs" aria-label="Progress sections"><a href="#progress" class="${a === 'progress' ? 'on' : ''}">Overview</a><a href="#history" class="${a === 'history' ? 'on' : ''}">Diary</a></nav>`;
 
@@ -253,28 +254,46 @@ function verdictText(t, e, b, bal) {
   if (bal <= 0) return { cls: '', icon: 'check', head: `${r0(-bal)} kcal under what you burned`, sub: `A calorie deficit ${word}: about ${r1(-bal / KCAL_PER_KG * 1000)} g of body weight if every day looked like this.` };
   return { cls: 'warn', icon: 'info', head: `${r0(bal)} kcal over what you burned`, sub: `A calorie surplus ${word}: about ${r1(bal / KCAL_PER_KG * 1000)} g of body weight if every day looked like this.` };
 }
+const waterGoal = () => num(S().waterMl) || Math.min(4000, Math.max(1500, Math.round(curWeight() * 35 / 100) * 100));
+const fmtWater = ml => ml >= 1000 ? `${+(ml / 1000).toFixed(2)} L` : `${r0(ml)} ml`;
+function greeting() {
+  const hr = new Date().getHours(), hello = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening', nm = (user?.name || '').split(' ')[0];
+  return `<div class="greet">${user?.picture ? `<img class="av" src="${esc(user.picture)}" alt="" referrerpolicy="no-referrer">` : ''}<div><span>${hello}</span><b>${nm ? esc(nm) : 'Welcome'}</b></div>${user ? '' : '<a class="syncnudge" href="#settings">Sign in to sync</a>'}</div>`;
+}
 function renderToday() {
   const t = totals(), e = expenditure(), b = budget(), tg = targets(), bal = t.kcal - e.total;
   const R = 92, C = 2 * Math.PI * R, pct = b.kcal > 0 ? Math.min(1, t.kcal / b.kcal) : 0;
-  const left = b.kcal - t.kcal, v = verdictText(t, e, b, bal), foods = day().foods;
+  const left = b.kcal - t.kcal, v = verdictText(t, e, b, bal), foods = day().foods, dd = day();
+  const wl = num(dd.water), wg = waterGoal(), glasses = Math.min(16, Math.ceil(wg / 250)), filled = Math.floor(wl / 250);
   const meals = MEALS.map(m => {
     const fs = foods.filter(f => f.meal === m), kc = fs.reduce((a, f) => a + num(f.kcal), 0);
-    return `<div class="meal-row"><div class="meal-h"><span class="meal-ico">${ico(MEAL_ICON[m])}</span><b>${m}</b><span class="meal-kc">${fs.length ? r0(kc) + ' kcal' : ''}</span><a class="addmini" href="#add" data-addmeal="${m}" aria-label="Add food to ${m}">${ico('plus')}</a></div>` +
+    return `<div class="meal-row"><div class="meal-h"><span class="meal-ico">${ico(MEAL_ICON[m])}</span><b>${m}</b><span class="meal-kc">${fs.length ? r0(kc) + ' kcal' : ''}</span><button class="addmini" data-addmeal="${m}" aria-label="Add food to ${m}">${ico('plus')}</button></div>` +
       fs.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${f.grams ? r0(f.grams) + ' g' : ''}</span></div><div class="k">${r0(f.kcal)}</div><button class="icon-btn sm" data-del-food="${f.id}" aria-label="Delete ${esc(f.name)}">${ico('trash')}</button></div>`).join('') + '</div>';
   }).join('');
   $('#view-today').innerHTML = `
+  ${cur === todayISO() ? greeting() : ''}
   <div class="card hero-card">
     <div class="ring"><svg width="220" height="220" viewBox="0 0 220 220" aria-hidden="true"><circle class="rt" cx="110" cy="110" r="${R}"/><circle class="ra${left < 0 ? ' over' : ''}" cx="110" cy="110" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}"/></svg>
-      <div class="c"><b>${r0(Math.abs(left))}</b><span>${left < 0 ? 'kcal over budget' : 'kcal left to eat'}</span></div></div>
-    <div class="hline"><span><b>${r0(t.kcal)}</b> eaten</span><i></i><span><b>${r0(e.total)}</b> burned</span><i></i><span><b>${r0(b.kcal)}</b> budget</span></div>
+      <div class="c"><b>${r0(Math.abs(left))}</b><span>${left < 0 ? 'kcal over target' : 'kcal left to eat'}</span></div></div>
+    <div class="htiles">
+      <div class="ht"><span class="hti">${ico('utensils')}</span><b>${r0(t.kcal)}</b><span>Calories in</span></div>
+      <div class="ht"><span class="hti">${ico('flame')}</span><b>${r0(e.total)}</b><span>Calories out</span></div>
+      <div class="ht"><span class="hti">${ico('target')}</span><b>${r0(b.kcal)}</b><span>Daily target</span></div>
+    </div>
     <details class="hdet"><summary>See the details</summary>
-      <div class="breakdown"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>burned</span></div>
+      <div class="breakdown"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>calories out</span></div>
       <div class="verdict ${v.cls}">${ico(v.icon)}<div><b>${v.head}</b><span>${v.sub}</span></div></div>
-      <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top.${b.deficit ? ` Your budget is burned minus the ${r0(b.deficit)} kcal daily deficit that reaches your goal.` : ' Set a goal weight and date in Profile to get a budget that aims at it.'}</p>
+      <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top.${b.deficit ? ` Your daily target is calories out minus the ${r0(b.deficit)} kcal daily deficit that reaches your goal.` : ' Set a goal weight and date in Profile to get a target that aims at it.'}</p>
     </details>
   </div>
 
   <div class="card"><h2>Meals</h2>${meals}</div>
+
+  <div class="card water"><div class="card-h"><h2>Water</h2><span class="wtotal"><b>${fmtWater(wl)}</b> / ${fmtWater(wg)}</span></div>
+    <div class="drops" aria-hidden="true">${Array.from({ length: glasses }, (_, i) => `<span class="drop${i < filled ? ' on' : ''}">${ico('drop')}</span>`).join('')}</div>
+    <div class="bar" style="--c:var(--water)"><div class="t"><i style="width:${Math.min(100, wl / wg * 100)}%"></i></div></div>
+    <div class="row"><button class="btn primary" data-water="250">${ico('drop')}Glass · 250 ml</button><button class="btn" data-water="500">Bottle · 500 ml</button>${wl ? '<button class="btn quiet sm" data-water="-250" aria-label="Remove 250 ml">Undo</button>' : ''}</div>
+  </div>
 
   <div class="card"><h2>Macros</h2>
     <div class="mbars">${macroBar('Protein', t.protein, tg.protein, 'var(--protein)')}${macroBar('Carbs', t.carbs, tg.carbs, 'var(--carbs)')}${macroBar('Fat', t.fat, tg.fat, 'var(--fat)')}</div>
@@ -356,7 +375,7 @@ function fillSettings() {
   const s = S(), set = (id, v) => $('#' + id).value = v ?? '';
   set('s-sex', s.sex); set('s-age', s.age); set('s-height', s.heightCm); set('s-weight', curWeight()); set('s-bf', s.bodyFat);
   set('s-waist', s.waist); set('s-neck', s.neck); set('s-hip', s.hip); set('s-goal', s.goalWeight); set('s-goaldate', s.goalDate);
-  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct);
+  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl);
 }
 function renderSettings() {
   const bf = bodyFat(), b = bmr(), bm = bmi();
@@ -370,7 +389,9 @@ function addFood(entry) {
   day().foods.push(f);
   db.recent = [{ ...entry }, ...db.recent.filter(r => r.name !== entry.name)].slice(0, 25);
   save(); render(); toast(`Added ${entry.name} (${r0(entry.kcal)} kcal)`);
+  if ($('#addsheet').open) { sessionAdded.push(entry); renderAdd(); }
 }
+let sessionAdded = [];
 let pending = null;
 function openPicker(item) {
   pending = item;
@@ -425,8 +446,10 @@ async function searchOnline(q) {
 let searchSeq = 0;
 function showRecent() {
   const box = $('#search-results'); ++searchSeq; box._items = [];
+  const order = db.recent.map((r, i) => i).sort((x, y) => (db.recent[y].meal === addMeal) - (db.recent[x].meal === addMeal));
+  const usual = db.recent.some(r => r.meal === addMeal);
   box.innerHTML = db.recent.length
-    ? '<h3>Recent foods</h3>' + db.recent.slice(0, 12).map((r, i) => `<div class="item"><div class="n"><b>${esc(r.name)}</b><span>${r0(r.kcal)} kcal · P ${r0(r.protein)} · C ${r0(r.carbs)} · F ${r0(r.fat)} g</span></div><button class="btn sm primary" data-re="${i}" aria-label="Add ${esc(r.name)} again">Add</button></div>`).join('')
+    ? `<h3>${usual ? `Your usual ${addMeal.toLowerCase()} foods` : 'Recent foods'}</h3>` + order.slice(0, 12).map(i => { const r = db.recent[i]; return `<div class="item"><div class="n"><b>${esc(r.name)}</b><span>${r0(r.kcal)} kcal · P ${r0(r.protein)} · C ${r0(r.carbs)} · F ${r0(r.fat)} g</span></div><button class="btn sm primary" data-re="${i}" aria-label="Add ${esc(r.name)} again">Add</button></div>`; }).join('')
     : `<div class="empty">${ico('utensils')}<p><b>Search to get started</b><br>Try “kottu”, “rice” or “banana”. Foods you add will be saved here for one-tap logging.</p></div>`;
 }
 async function searchFoods(q) {
@@ -518,12 +541,12 @@ async function identifyPhoto(file) {
 
 // ---------- history ----------
 function renderHistory() {
-  const ds = Object.keys(db.days).filter(d => { const x = db.days[d]; return x.foods.length || x.steps || x.workouts.length; }).sort().reverse();
+  const ds = Object.keys(db.days).filter(d => { const x = db.days[d]; return x.foods.length || x.steps || x.workouts.length || x.water; }).sort().reverse();
   $('#view-history').innerHTML = ptabs('history') + (ds.length ? ds.map(d => {
     const x = db.days[d], t = totals(d), e = expenditure(d), bal = t.kcal - e.total;
     const label = new Date(d + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
     return `<details class="card hday"><summary><b>${label}</b><span class="${x.foods.length ? (bal <= 0 ? 'good' : 'warn') : 'muted'}">${x.foods.length ? `${r0(t.kcal)} eaten · ${bal <= 0 ? '−' : '+'}${r0(Math.abs(bal))}` : 'no food logged'}</span></summary>
-      <p class="muted small">Burned ${r0(e.total)} kcal · ${r0(x.steps)} steps · P ${r0(t.protein)} C ${r0(t.carbs)} F ${r0(t.fat)} g${db.weights[d] ? ` · ${db.weights[d]} kg` : ''}</p>
+      <p class="muted small">Burned ${r0(e.total)} kcal · ${r0(x.steps)} steps${x.water ? ' · ' + fmtWater(x.water) + ' water' : ''} · P ${r0(t.protein)} C ${r0(t.carbs)} F ${r0(t.fat)} g${db.weights[d] ? ` · ${db.weights[d]} kg` : ''}</p>
       <div class="list">${x.foods.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${f.meal}${f.grams ? ' · ' + r0(f.grams) + ' g' : ''} · P ${r0(f.protein)} C ${r0(f.carbs)} F ${r0(f.fat)}</span></div><div class="k">${r0(f.kcal)}</div></div>`).join('')}
       ${x.workouts.map(w => `<div class="item"><div class="n"><b>${esc(w.type)}</b><span>${w.cat === 'gym' ? 'Gym' : 'Extra'} · ${w.min} min</span></div><div class="k">${r0(w.kcal)}</div></div>`).join('')}</div>
       <div class="row"><button class="btn sm" data-open-day="${d}">Open / edit this day</button></div></details>`;
@@ -534,7 +557,9 @@ function renderHistory() {
 document.addEventListener('click', e => {
   const t = e.target.closest('button,a'); if (!t) return;
   if (t.dataset.shift) { cur = addDays(cur, +t.dataset.shift); if (cur > todayISO()) cur = todayISO(); render(); }
-  if (t.dataset.addmeal) { addMeal = t.dataset.addmeal; }
+  if (t.dataset.view === 'add' || t.dataset.addmeal) { e.preventDefault(); openAdd(t.dataset.addmeal); return; }
+  if (t.id === 'sheet-close' || t.id === 'sheet-done') { $('#addsheet').close(); return; }
+  if (t.dataset.water) { const d = day(); d.water = Math.max(0, num(d.water) + +t.dataset.water); save(); render(); toast(+t.dataset.water > 0 ? `+${t.dataset.water} ml water` : 'Removed 250 ml'); }
   if (t.dataset.meal) { addMeal = t.dataset.meal; renderMealChips(); }
   if (t.dataset.addsteps) { const d = day(); d.steps = num(d.steps) + +t.dataset.addsteps; save(); render(); toast(`+${r0(+t.dataset.addsteps)} steps`); }
   if (t.dataset.min) { $('#workout-form').min.value = t.dataset.min; updateWorkoutPreview(); }
@@ -556,7 +581,7 @@ document.addEventListener('click', e => {
   if (t.dataset.tab) showTab(t.dataset.tab);
 });
 function showTab(name) {
-  $$('#view-add .tab').forEach(x => x.hidden = x.id !== 'tab-' + name);
+  $$('#addsheet .tab').forEach(x => x.hidden = x.id !== 'tab-' + name);
   if (name !== 'barcode') stopScan();
   if (name === 'home') { const q = $('#search-input').value.trim(); q ? searchFoods(q) : showRecent(); }
   if (name === 'manual') $('#manual-form').meal.value = addMeal;
@@ -566,10 +591,19 @@ function renderMealChips() {
   const mf = $('#manual-form'); if (mf) mf.meal.value = addMeal;
 }
 function renderAdd() {
-  const t = totals(), b = budget(), pct = b.kcal > 0 ? Math.min(100, t.kcal / b.kcal * 100) : 0;
-  $('#add-summary').innerHTML = `<div><b>${cur === todayISO() ? 'Today' : new Date(cur + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}: ${r0(t.kcal)} / ${r0(b.kcal)} kcal</b><div class="t"><i style="width:${pct}%"></i></div></div><a class="btn sm" href="#today">${ico('check')}Done</a>`;
+  const t = totals(), b = budget(), pct = b.kcal > 0 ? Math.min(100, t.kcal / b.kcal * 100) : 0, last = sessionAdded[sessionAdded.length - 1];
+  const day = cur === todayISO() ? 'Today' : new Date(cur + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  $('#add-summary').innerHTML = `<div class="addinfo">${last ? `<b class="added">${ico('check')} Added ${esc(last.name)}</b><span>${sessionAdded.length} item${sessionAdded.length > 1 ? 's' : ''} this time · ${r0(t.kcal)} / ${r0(b.kcal)} kcal</span>` : `<b>${day}: ${r0(t.kcal)} / ${r0(b.kcal)} kcal</b><span>Tap a food to log it</span>`}<div class="t"><i style="width:${pct}%"></i></div></div><button class="btn sm primary" id="sheet-done">Done</button>`;
+  $('#sheet-title').textContent = `Add to ${addMeal}`;
   renderMealChips();
 }
+function openAdd(meal) {
+  if (meal) addMeal = meal;
+  sessionAdded = []; $('#search-input').value = ''; showTab('home'); renderAdd();
+  const d = $('#addsheet'); if (!d.open) d.showModal();
+  if (matchMedia('(pointer:fine)').matches) $('#search-input').focus();
+}
+$('#addsheet').addEventListener('close', () => { stopScan(); showTab('home'); sessionAdded = []; render(); });
 $('#scan-start').onclick = startScan; $('#scan-stop').onclick = stopScan;
 $('#id-photo').onchange = e => { if (e.target.files[0]) identifyPhoto(e.target.files[0]); e.target.value = ''; };
 try { navigator.storage?.persist?.(); } catch { } // ask the browser not to evict saved history
@@ -610,7 +644,7 @@ $('#settings-form').onsubmit = e => {
   e.preventDefault(); const g = id => $('#' + id).value, s = S(), oldGoal = s.goalWeight + '|' + s.goalDate;
   Object.assign(s, { sex: g('s-sex'), age: num(g('s-age')), heightCm: num(g('s-height')), weightKg: num(g('s-weight')), bodyFat: g('s-bf'), waist: g('s-waist'),
     neck: g('s-neck'), hip: g('s-hip'), goalWeight: g('s-goal'), goalDate: g('s-goaldate'), baseline: num(g('s-base')), stepLenCm: g('s-steplen'),
-    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28 });
+    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28, waterMl: g('s-water') });
   if (s.weightKg >= 20) db.weights[todayISO()] = s.weightKg;
   if (!num(s.startWeight) || oldGoal !== s.goalWeight + '|' + s.goalDate) s.startWeight = curWeight();
   save(); render(); toast('Settings saved');
@@ -649,7 +683,7 @@ async function pushNow() {
 }
 let syncMsg = '';
 function setSync(m) { syncMsg = m; const el = $('#sync-msg'); if (el) el.textContent = m; }
-const hasLocalData = () => Object.values(db.days).some(d => d.foods.length || d.steps || d.workouts.length) || Object.keys(db.weights).length > 0;
+const hasLocalData = () => Object.values(db.days).some(d => d.foods.length || d.steps || d.workouts.length || d.water) || Object.keys(db.weights).length > 0;
 async function pull() {
   try {
     const { db: remote } = await api('GET', '/api/data');
@@ -681,10 +715,14 @@ function setupGoogle() {
     } catch { return false; }
   })();
 }
+function setPill() {
+  const first = (user?.name || user?.email || 'Account').split(' ')[0];
+  $('#acct').innerHTML = user ? `${user.picture ? `<img class="av-sm" src="${esc(user.picture)}" alt="" referrerpolicy="no-referrer">` : ico('user')}<span id="acct-t">${esc(first)}</span>` : `${ico('user')}<span id="acct-t">Sign in</span>`;
+}
 async function renderAccount() {
-  const box = $('#account-body'), chip = $('#acct-t');
+  const box = $('#account-body');
   if (user) {
-    chip.textContent = (user.name || user.email || 'Account').split(' ')[0];
+    setPill(); render();
     box.innerHTML = `<div class="row">${user.picture ? `<img class="avatar" src="${esc(user.picture)}" alt="" referrerpolicy="no-referrer">` : ''}<div><b>${esc(user.name)}</b><br><span class="muted small">${esc(user.email)}</span></div></div>
       <p class="muted small" id="sync-msg">${esc(syncMsg || 'Signed in. Changes sync automatically between your devices.')}</p>
       <div class="row"><button class="btn" id="sync-now">Sync now</button><button class="btn" id="logout-btn">Sign out</button></div>`;
@@ -692,7 +730,7 @@ async function renderAccount() {
     $('#logout-btn').onclick = async () => { try { await api('POST', '/api/auth/logout', {}); } catch { } user = null; syncMsg = ''; window.google?.accounts?.id?.disableAutoSelect(); renderAccount(); toast('Signed out'); };
     return;
   }
-  chip.textContent = 'Sign in';
+  setPill(); render();
   box.innerHTML = '<p class="muted small">Sign in with Google to keep your data safe and synced across your phone and laptop.</p><div id="g-btn" class="gbtn"></div><p class="muted small" id="g-msg"></p>';
   if (await setupGoogle()) google.accounts.id.renderButton($('#g-btn'), { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill' });
   else $('#g-msg').textContent = location.protocol === 'file:' ? 'Sign-in works on the deployed site.' : 'Sign-in is not available right now (offline, or not set up yet).';
@@ -721,7 +759,7 @@ function applyTheme(t) {
   if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
   $('#theme-ico').setAttribute('href', dark ? '#i-sun' : '#i-moon');
   $('#theme-btn').setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
-  $('meta[name=theme-color]').content = dark ? '#0e1813' : '#14382b';
+  $('meta[name=theme-color]').content = dark ? '#0b1220' : '#14307a';
 }
 function savedTheme() { try { return localStorage.getItem('bmct.theme') || ''; } catch { return ''; } }
 $('#theme-btn').onclick = () => {
