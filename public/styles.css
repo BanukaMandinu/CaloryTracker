@@ -317,3 +317,95 @@ svg.chart text{fill:var(--muted);font-size:10px}
 .breakdown span{display:flex;flex-direction:column;align-items:center;font-size:.68rem;opacity:.9;text-align:center;min-width:0}
 .breakdown span b{font-family:var(--font-d);font-size:1rem;letter-spacing:-.02em}
 .breakdown i{font-style:normal;opacity:.6;font-weight:700}
+
+/* ===== v3: calm and spacious layer (bigger type, more air, fewer boxes) ===== */
+:root{--r:28px;--shadow:0 2px 4px rgba(60,45,20,.04),0 12px 32px rgba(60,45,20,.06)}
+body{font-size:17px;line-height:1.6}
+h2{font-size:1.4rem;margin-bottom:1rem}
+main{padding:.6rem 1.1rem 1.5rem}
+@media(min-width:900px){main{max-width:680px}}
+.card{padding:1.6rem;margin-bottom:1.3rem;border-color:transparent}
+.muted{color:color-mix(in srgb,var(--muted) 85%,var(--text))}
+.small{font-size:.92rem}
+.btn{min-height:3.2rem;font-size:1rem;border-radius:18px}
+.btn.sm{min-height:2.7rem;font-size:.95rem}
+input,select{min-height:3.2rem;font-size:1rem;border-radius:16px}
+label{font-size:.9rem;gap:.45rem}
+.grid-form{gap:1rem}
+.lead{font-size:1.1rem;font-weight:700;margin:.2rem 0 1rem}
+.lead .muted{font-weight:500;font-size:.9rem;display:block;margin-top:.2rem}
+
+/* date bar (replaces the crowded day strip) */
+.daystrip{display:flex;align-items:center;justify-content:space-between;gap:1rem;overflow:visible;padding:.9rem 0 1.2rem;margin:0;scroll-snap-type:none}
+.dtitle{text-align:center;line-height:1.25}
+.dtitle b{display:block;font-family:var(--font-d);font-size:1.5rem;letter-spacing:-.02em}
+.dtitle span{font-size:.92rem;color:var(--muted)}
+.icon-btn{width:2.9rem;height:2.9rem}
+
+/* hero: one big number */
+.hero-card{padding:2rem 1.5rem 1.4rem;text-align:center}
+.ring{width:220px;height:220px;margin:0 auto}
+.ring circle{stroke-width:16}
+.ring b{font-size:3.6rem}
+.ring .c span{font-size:.95rem;margin-top:.3rem}
+.hline{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:1rem;margin:1.5rem 0 .6rem;flex-wrap:wrap}
+.hline span{font-size:.95rem;opacity:.9}
+.hline b{font-family:var(--font-d);font-size:1.25rem;margin-right:.2rem}
+.hline i{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.4)}
+.hdet{position:relative;z-index:1;text-align:left;margin-top:.4rem}
+.hdet summary{justify-content:center;gap:.6rem;font-size:.92rem;font-weight:600;opacity:.9;padding:.7rem 0}
+.hdet summary::after{margin-right:0;border-color:#fff}
+.hdet p{font-size:.9rem;opacity:.9;line-height:1.55}
+.hero-card .breakdown{margin-top:.6rem}
+.hero-card .verdict{margin-top:.8rem}
+
+/* meals: one card, light rows */
+.meal-row{padding:.5rem 0 .6rem;border-top:1px solid var(--line)}
+.meal-row:first-of-type{border-top:0;padding-top:0}
+.meal-row .meal-h{padding:.4rem 0}
+.meal-row .meal-ico{width:2.8rem;height:2.8rem;border-radius:15px}
+.meal-row .meal-h b{font-size:1.15rem}
+.meal-kc{color:var(--muted);font-size:.92rem;font-weight:600}
+.addmini{width:2.9rem;height:2.9rem}
+.meal-row .item{padding:.65rem 0 .65rem 3.5rem;border-top:0}
+.meal-row .item .n b{font-size:1rem}
+.meal-row .item .n span{font-size:.85rem}
+.item{padding:.95rem 0}
+.item .k{font-size:1.05rem}
+
+/* macros */
+.mbars{gap:1.4rem}
+.mbar .h{margin-bottom:.5rem}
+.mbar .h b{font-size:1.05rem}
+.mbar .h span{font-size:.92rem}
+.bar .t,.mbar .t{height:12px}
+
+/* forms and tiles */
+.searchbox input{min-height:3.8rem;font-size:1.1rem}
+.tile{padding:1.1rem .9rem;border-radius:22px}
+.tile b{font-size:1rem}
+.tile span{font-size:.82rem}
+.mealpick button{min-height:2.9rem;font-size:.95rem}
+.addbar{padding:1rem 1.2rem}
+.stat b{font-size:1.5rem}
+.stat span{font-size:.82rem}
+.chipbtn{font-size:.92rem;min-height:2.6rem}
+.ptabs a{padding:.8rem;font-size:1rem}
+.linkrow{padding:1.1rem 0}
+.empty{padding:2.2rem .5rem}
+
+/* navigation */
+.nav a{font-size:.76rem}
+.nav a .i{width:1.55rem;height:1.55rem}
+@media(max-width:480px){
+  main{padding-left:.9rem;padding-right:.9rem}
+  .hero-card{padding:1.8rem 1rem 1.2rem}
+  .ring{width:200px;height:200px}
+  .ring svg{width:200px;height:200px}
+  .ring b{font-size:3.2rem}
+  .hline{gap:.7rem}
+}
+.hline{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin:1.6rem 0 .5rem}
+.hline i{display:none}
+.hline span{display:flex;flex-direction:column;align-items:center;gap:.1rem;font-size:.85rem;opacity:.9}
+.hline b{font-size:1.45rem;margin:0}

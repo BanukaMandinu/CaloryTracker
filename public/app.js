@@ -223,12 +223,9 @@ function go(v) {
   render(); window.scrollTo(0, 0);
 }
 function renderDayStrip() {
-  const t = todayISO(), el = $('#datenav'), days = Array.from({ length: 21 }, (_, i) => addDays(t, i - 20));
-  el.innerHTML = days.map(d => {
-    const dt = new Date(d + 'T12:00:00'), x = db.days[d], has = x && (x.foods.length || x.steps || x.workouts.length);
-    return `<button class="dpill${d === cur ? ' on' : ''}" data-day="${d}" aria-label="${dt.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}${d === t ? ' (today)' : ''}" aria-pressed="${d === cur}"><small>${d === t ? 'Today' : dt.toLocaleDateString(undefined, { weekday: 'short' })}</small><b>${dt.getDate()}</b><i class="${has ? 'has' : ''}"></i></button>`;
-  }).join('');
-  const on = el.querySelector('.on'); if (on) el.scrollLeft = on.offsetLeft - el.clientWidth / 2 + on.offsetWidth / 2;
+  const t = todayISO(), dt = new Date(cur + 'T12:00:00');
+  const label = cur === t ? 'Today' : cur === addDays(t, -1) ? 'Yesterday' : dt.toLocaleDateString(undefined, { weekday: 'long' });
+  $('#datenav').innerHTML = `<button class="icon-btn" data-shift="-1" aria-label="Previous day">${ico('left')}</button><div class="dtitle"><b>${label}</b><span>${dt.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</span></div><button class="icon-btn" data-shift="1" aria-label="Next day" ${cur >= t ? 'disabled' : ''}>${ico('right')}</button>`;
 }
 function render() {
   $('#datenav').hidden = !['today', 'add', 'activity'].includes(view);
@@ -254,56 +251,32 @@ function verdictText(t, e, b, bal) {
 }
 function renderToday() {
   const t = totals(), e = expenditure(), b = budget(), tg = targets(), bal = t.kcal - e.total;
-  const R = 70, C = 2 * Math.PI * R, pct = b.kcal > 0 ? Math.min(1, t.kcal / b.kcal) : 0;
-  const bf = bodyFat(), bm = bmi(), left = b.kcal - t.kcal, v = verdictText(t, e, b, bal);
-  const foods = day().foods, dd = day();
+  const R = 92, C = 2 * Math.PI * R, pct = b.kcal > 0 ? Math.min(1, t.kcal / b.kcal) : 0;
+  const left = b.kcal - t.kcal, v = verdictText(t, e, b, bal), foods = day().foods;
   const meals = MEALS.map(m => {
     const fs = foods.filter(f => f.meal === m), kc = fs.reduce((a, f) => a + num(f.kcal), 0);
-    return `<div class="card meal"><div class="meal-h"><span class="meal-ico">${ico(MEAL_ICON[m])}</span><b>${m}<small>${fs.length ? `${fs.length} item${fs.length > 1 ? 's' : ''} · ${r0(kc)} kcal` : 'Nothing yet'}</small></b><a class="addmini" href="#add" data-addmeal="${m}" aria-label="Add food to ${m}">${ico('plus')}</a></div>` +
-      (fs.length ? `<div class="list">${fs.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${f.grams ? r0(f.grams) + ' g · ' : ''}P ${r0(f.protein)} · C ${r0(f.carbs)} · F ${r0(f.fat)} g</span></div><div class="k">${r0(f.kcal)}<small>kcal</small></div><button class="icon-btn sm" data-del-food="${f.id}" aria-label="Delete ${esc(f.name)}">${ico('trash')}</button></div>`).join('')}</div>` : '') + '</div>';
+    return `<div class="meal-row"><div class="meal-h"><span class="meal-ico">${ico(MEAL_ICON[m])}</span><b>${m}</b><span class="meal-kc">${fs.length ? r0(kc) + ' kcal' : ''}</span><a class="addmini" href="#add" data-addmeal="${m}" aria-label="Add food to ${m}">${ico('plus')}</a></div>` +
+      fs.map(f => `<div class="item"><div class="n"><b>${esc(f.name)}</b><span>${f.grams ? r0(f.grams) + ' g' : ''}</span></div><div class="k">${r0(f.kcal)}</div><button class="icon-btn sm" data-del-food="${f.id}" aria-label="Delete ${esc(f.name)}">${ico('trash')}</button></div>`).join('') + '</div>';
   }).join('');
   $('#view-today').innerHTML = `
   <div class="card hero-card">
-    <div class="hero">
-      <div class="ring"><svg width="168" height="168" viewBox="0 0 168 168" aria-hidden="true"><circle class="rt" cx="84" cy="84" r="${R}"/><circle class="ra${left < 0 ? ' over' : ''}" cx="84" cy="84" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}"/></svg>
-        <div class="c"><b>${r0(Math.abs(left))}</b><span>${left < 0 ? 'kcal over budget' : 'kcal left to eat'}</span></div></div>
-      <div class="hstats">
-        <div class="hstat"><span>Eaten</span><b>${r0(t.kcal)}</b></div>
-        <div class="hstat"><span>Burned</span><b>${r0(e.total)}</b></div>
-        <div class="hstat"><span>${b.deficit ? 'Goal budget' : 'Budget'}</span><b>${r0(b.kcal)}</b></div>
-      </div>
-    </div>
-    <div class="breakdown" aria-label="How burned calories add up"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>burned</span></div>
-    <div class="verdict ${v.cls}">${ico(v.icon)}<div><b>${v.head}</b><span>${v.sub}</span></div></div>
-    <details><summary>How is this worked out?</summary>
-      <p><b>Maintenance</b> (${r0(e.base)} kcal) is your resting burn multiplied by your daily activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top, so burned (and your budget) rises through the day. A deficit looks big early on, until you have eaten and logged your activity.</p>
-      <p>${b.deficit ? `Your budget is what you burn minus the ${r0(b.deficit)} kcal daily deficit needed to hit your goal.` : 'Add a goal weight and date in Profile and the budget will aim you at it.'}</p>
+    <div class="ring"><svg width="220" height="220" viewBox="0 0 220 220" aria-hidden="true"><circle class="rt" cx="110" cy="110" r="${R}"/><circle class="ra${left < 0 ? ' over' : ''}" cx="110" cy="110" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}"/></svg>
+      <div class="c"><b>${r0(Math.abs(left))}</b><span>${left < 0 ? 'kcal over budget' : 'kcal left to eat'}</span></div></div>
+    <div class="hline"><span><b>${r0(t.kcal)}</b> eaten</span><i></i><span><b>${r0(e.total)}</b> burned</span><i></i><span><b>${r0(b.kcal)}</b> budget</span></div>
+    <details class="hdet"><summary>See the details</summary>
+      <div class="breakdown"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>burned</span></div>
+      <div class="verdict ${v.cls}">${ico(v.icon)}<div><b>${v.head}</b><span>${v.sub}</span></div></div>
+      <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top.${b.deficit ? ` Your budget is burned minus the ${r0(b.deficit)} kcal daily deficit that reaches your goal.` : ' Set a goal weight and date in Profile to get a budget that aims at it.'}</p>
     </details>
   </div>
 
-  ${meals}
+  <div class="card"><h2>Meals</h2>${meals}</div>
 
   <div class="card"><h2>Macros</h2>
     <div class="mbars">${macroBar('Protein', t.protein, tg.protein, 'var(--protein)')}${macroBar('Carbs', t.carbs, tg.carbs, 'var(--carbs)')}${macroBar('Fat', t.fat, tg.fat, 'var(--fat)')}</div>
-    <details class="more" style="margin-top:1rem"><summary>More nutrients</summary>
+    <details class="more" style="margin-top:1.2rem"><summary>More nutrients</summary>
       ${bar('Fiber', t.fiber, tg.fiber, 'g', 'var(--accent)')}${bar('Sugar', t.sugar, tg.sugar, 'g', 'var(--warn)', 1)}${bar('Sat. fat', t.satfat, tg.satfat, 'g', 'var(--warn)', 1)}${bar('Sodium', t.sodium, tg.sodium, 'mg', 'var(--warn)', 1)}
     </details>
-  </div>
-
-  <div class="card"><h2>Move</h2>
-    <div class="chipstats">
-      <a class="cs" href="#activity"><b>${dd.steps ? r0(dd.steps) : '0'}</b><span>steps</span></a>
-      <a class="cs" href="#activity"><b>${r0(e.workouts)}</b><span>workout kcal</span></a>
-      <a class="cs" href="#activity"><b>${dd.workouts.length}</b><span>workouts</span></a>
-    </div>
-  </div>
-
-  <div class="card"><h2>Body</h2>
-    <div class="chipstats">
-      <a class="cs" href="#progress"><b>${r1(curWeight())}<small> kg</small></b><span>weight</span></a>
-      <a class="cs" href="#settings"><b>${r1(bm)}</b><span>BMI · ${bmiCat(bm)}</span></a>
-      <a class="cs" href="#settings"><b>${r1(bf.v)}%</b><span>body fat</span></a>
-    </div>
   </div>`;
 }
 
@@ -313,7 +286,7 @@ function renderActivity() {
   $('#steps-note').textContent = dd.steps ? `${r0(dd.steps)} steps ≈ ${r1(dd.steps * stepLenM() / 1000)} km ≈ ${r0(e.steps)} kcal (step length ${r0(stepLenM() * 100)} cm).` : 'Enter the total from your phone or watch.';
   $('#steps-bar').style.width = Math.min(100, num(dd.steps) / STEP_GOAL * 100) + '%';
   $('#steps-goal').textContent = `${r0(num(dd.steps))} / ${r0(STEP_GOAL)}`;
-  $('#act-summary').innerHTML = `<div class="card"><h2>Energy burned today</h2><div class="stats"><div class="stat"><b>${r0(e.base)}</b><span>Resting + daily life</span></div><div class="stat"><b>${r0(e.steps)}</b><span>Steps</span></div><div class="stat"><b>${r0(e.workouts)}</b><span>Workouts</span></div></div><p class="muted small">Total ${r0(e.total)} kcal</p></div>`;
+  $('#act-summary').innerHTML = `<p class="lead">${r0(e.total)} kcal burned so far <span class="muted">· ${r0(e.base)} maintenance + ${r0(e.steps)} steps + ${r0(e.workouts)} workouts</span></p>`;
   $('#workout-list').innerHTML = dd.workouts.length ? dd.workouts.map(w => `<div class="item"><div class="n"><b>${esc(w.type)}</b><span>${w.cat === 'gym' ? 'Gym' : 'Extra'} · ${w.min} min${w.note ? ' · ' + esc(w.note) : ''}</span></div><div class="k">${r0(w.kcal)} kcal</div><button class="icon-btn sm" data-del-w="${w.id}" aria-label="Delete workout">${ico('trash')}</button></div>`).join('') : `<div class="empty">${ico('flame')}<p>No workouts logged.</p></div>`;
   updateWorkoutPreview();
 }
@@ -371,7 +344,8 @@ function renderProgress() {
       trend += `<p class="small muted">At this pace you would reach ${r1(p.goal)} kg around <b>${new Date(Date.now() + d * 864e5).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</b>.</p>`;
     }
   }
-  $('#progress-body').innerHTML = `<div class="card"><h2>Goal</h2>${goal}</div><div class="card"><h2>Last 14 days</h2>${barsChart()}${trend}</div><div class="card"><h2>Weight</h2>${weightChart()}</div>`;
+  const bf = bodyFat(), bm = bmi();
+  $('#progress-body').innerHTML = `<div class="card"><h2>Your body</h2><div class="stats"><div class="stat"><b>${r1(w)}</b><span>kg</span></div><div class="stat"><b>${r1(bm)}</b><span>BMI · ${bmiCat(bm)}</span></div><div class="stat"><b>${r1(bf.v)}%</b><span>body fat</span></div></div><p class="muted small">Body fat: ${bf.src}. Add waist and neck measurements in Profile for a better estimate.</p></div><div class="card"><h2>Goal</h2>${goal}</div><div class="card"><h2>Last 14 days</h2>${barsChart()}${trend}</div><div class="card"><h2>Weight</h2>${weightChart()}</div>`;
 }
 
 function fillSettings() {
@@ -550,7 +524,7 @@ function renderHistory() {
 // ---------- events ----------
 document.addEventListener('click', e => {
   const t = e.target.closest('button,a'); if (!t) return;
-  if (t.dataset.day) { cur = t.dataset.day; render(); }
+  if (t.dataset.shift) { cur = addDays(cur, +t.dataset.shift); if (cur > todayISO()) cur = todayISO(); render(); }
   if (t.dataset.addmeal) { addMeal = t.dataset.addmeal; }
   if (t.dataset.meal) { addMeal = t.dataset.meal; renderMealChips(); }
   if (t.dataset.addsteps) { const d = day(); d.steps = num(d.steps) + +t.dataset.addsteps; save(); render(); toast(`+${r0(+t.dataset.addsteps)} steps`); }
