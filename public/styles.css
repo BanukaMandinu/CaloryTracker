@@ -661,3 +661,9 @@ dialog.pick{width:min(94vw,480px);padding:1.3rem}
 dialog.pick{overflow:hidden}
 #wp-body{overflow:auto;max-height:calc(90vh - 5.5rem);padding-right:2px}
 .pickgrid{max-height:none;overflow:visible}
+
+/* the section bar always sits first; the day control comes after it */
+#subtabs:empty{display:none}
+@media(min-width:1100px){
+  #view-activity.on{grid-template-areas:"sum sum" "steps form" "list form";grid-template-rows:auto auto 1fr}
+}

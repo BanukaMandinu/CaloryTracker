@@ -117,9 +117,9 @@
 
   // ---------- Workout page ----------
   function renderWorkout() {
-    const el = $('#view-workout'), tabs = wtabs('workout');
+    const el = $('#view-workout');
     if (!hasPlan()) {
-      el.innerHTML = tabs + `<div class="card"><div class="empty">${ico('dumbbell')}<p><b>No workout plan yet</b><br>Build your own: add days, exercises, sets and reps, then log your weights.</p></div><div class="row end"><button class="btn primary" data-wk-new>Create my plan</button></div></div>`;
+      el.innerHTML = `<div class="card"><div class="empty">${ico('dumbbell')}<p><b>No workout plan yet</b><br>Build your own: add days, exercises, sets and reps, then log your weights.</p></div><div class="row end"><button class="btn primary" data-wk-new>Create my plan</button></div></div>`;
       return;
     }
     const w = W(), t = todayISO(), te = entryFor(t);
@@ -141,7 +141,7 @@
     const hist = `<div class="card"><h2>Recent sessions</h2>${recent.length ? recent.map(s => `<details class="wkday"><summary><span class="wk-t"><b>${esc(s.dayName)}</b><small>${fmtDate(s.date)} · ${s.minutes} min${doneSets(s) ? ` · ${doneSets(s)} sets` : ' · marked done'}${volumeOf(s) ? ` · ${r0(volumeOf(s))} kg` : ''}</small></span></summary>
         ${s.logs.map(l => `<div class="wk-log"><b>${esc(l.name)}</b><span>${l.sets.filter(x => x.done || x.w || x.r).map(x => l.kind === 'time' ? esc(x.r || 'done') : `${x.w || '–'}×${x.r || '–'}`).join(' · ') || '–'}</span></div>`).join('')}
         <div class="row"><button class="btn sm danger" data-wk-delsession="${esc(s.id)}">Delete</button></div></details>`).join('') : `<div class="empty">${ico('history')}<p>Finished sessions will appear here.</p></div>`}</div>`;
-    el.innerHTML = tabs + `<div class="wk-grid"><div class="wk-col">${hero}${strip}</div><div class="wk-col">${plan}${hist}</div></div>`;
+    el.innerHTML = `<div class="wk-grid"><div class="wk-col">${hero}${strip}</div><div class="wk-col">${plan}${hist}</div></div>`;
   }
   window.renderWorkout = renderWorkout;
 

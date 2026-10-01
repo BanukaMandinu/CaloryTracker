@@ -371,6 +371,7 @@ function renderDayStrip() {
   $('#datenav').innerHTML = `<button class="icon-btn" data-shift="-1" aria-label="Previous day">${ico('left')}</button><div class="dtitle"><b>${label}</b><span>${dt.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</span></div><button class="icon-btn" data-shift="1" aria-label="Next day" ${cur >= t ? 'disabled' : ''}>${ico('right')}</button>`;
 }
 function render() {
+  $('#subtabs').innerHTML = view === 'workout' || view === 'activity' ? wtabs(view) : '';
   $('#datenav').hidden = !['today', 'activity'].includes(view);
   if (!$('#datenav').hidden) renderDayStrip();
   ({ today: renderToday, history: renderHistory, activity: renderActivity, progress: renderProgress, settings: renderSettings, workout: () => window.renderWorkout?.() }[view] || (() => { }))();
@@ -454,7 +455,6 @@ function renderToday() {
 }
 
 function renderActivity() {
-  $('#atabs').innerHTML = wtabs('activity');
   const dd = day(), e = expenditure();
   $('#steps-input').value = dd.steps || '';
   $('#steps-note').textContent = dd.steps ? `${r0(dd.steps)} steps ≈ ${r1(dd.steps * stepLenM() / 1000)} km ≈ ${r0(e.steps)} kcal (step length ${r0(stepLenM() * 100)} cm).` : 'Enter the total from your phone or watch.';
