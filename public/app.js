@@ -177,7 +177,7 @@ const KEY = 'bmct.v1';
 const DEFAULTS = () => ({
   settings: { sex: 'male', age: 30, heightCm: 175, weightKg: 75, bodyFat: '', waist: '', neck: '', hip: '', goalWeight: '', goalDate: '',
     startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '', planMode: 'auto', manualDeficit: '', manualTarget: '', calibrate: 'on', maintOverride: '' },
-  days: {}, weights: {}, recent: [], custom: []
+  days: {}, weights: {}, recent: [], custom: [], workout: null, sessions: []
 });
 function load() {
   try {
@@ -372,8 +372,9 @@ function renderDayStrip() {
 function render() {
   $('#datenav').hidden = !['today', 'activity'].includes(view);
   if (!$('#datenav').hidden) renderDayStrip();
-  ({ today: renderToday, history: renderHistory, activity: renderActivity, progress: renderProgress, settings: renderSettings }[view] || (() => { }))();
+  ({ today: renderToday, history: renderHistory, activity: renderActivity, progress: renderProgress, settings: renderSettings, workout: () => window.renderWorkout?.() }[view] || (() => { }))();
 }
+const wtabs = a => `<nav class="ptabs" aria-label="Workout sections"><a href="#workout" class="${a === 'workout' ? 'on' : ''}">Workout plan</a><a href="#activity" class="${a === 'activity' ? 'on' : ''}">Steps &amp; extras</a></nav>`;
 const ptabs = a => `<nav class="ptabs" aria-label="Progress sections"><a href="#progress" class="${a === 'progress' ? 'on' : ''}">Overview</a><a href="#history" class="${a === 'history' ? 'on' : ''}">Diary</a></nav>`;
 
 // ---------- views ----------
@@ -433,6 +434,7 @@ function renderToday() {
   </div>
 
   <div class="card"><h2>Meals</h2>${meals}</div>
+  ${window.workoutTodayCard ? window.workoutTodayCard() : ''}
   </div><div class="tcol">
 
   <div class="card water"><div class="card-h"><h2>Water</h2><span class="wtotal"><b>${fmtWater(wl)}</b> / ${fmtWater(wg)}</span></div>
@@ -451,6 +453,7 @@ function renderToday() {
 }
 
 function renderActivity() {
+  $('#atabs').innerHTML = wtabs('activity');
   const dd = day(), e = expenditure();
   $('#steps-input').value = dd.steps || '';
   $('#steps-note').textContent = dd.steps ? `${r0(dd.steps)} steps ≈ ${r1(dd.steps * stepLenM() / 1000)} km ≈ ${r0(e.steps)} kcal (step length ${r0(stepLenM() * 100)} cm).` : 'Enter the total from your phone or watch.';
@@ -922,7 +925,7 @@ async function pushNow() {
 }
 let syncMsg = '';
 function setSync(m) { syncMsg = m; const el = $('#sync-msg'); if (el) el.textContent = m; }
-const hasLocalData = () => Object.values(db.days).some(d => d.foods.length || d.steps || d.workouts.length || d.water) || Object.keys(db.weights).length > 0;
+const hasLocalData = () => Object.values(db.days).some(d => d.foods.length || d.steps || d.workouts.length || d.water) || Object.keys(db.weights).length > 0 || (db.sessions || []).length > 0;
 // Every local copy is stamped with the account that owns it. Another account's diary is never shown or uploaded.
 const ownerOf = u => u?.uid || (u?.email || '').toLowerCase();
 function claimDevice() {
@@ -1046,7 +1049,7 @@ function maybeWelcome() {
 }
 // called after a successful Google sign-in and cloud pull
 function afterSignIn() {
-  unlockApp();
+  unlockApp(); window.ensureWorkoutSeed?.();
   if (hasLocalData() && !db.onboarded) { db.onboarded = true; save(false); }
   render();
   if (db.onboarded) toast(`Welcome back, ${(user?.name || '').split(' ')[0] || 'there'}. Your data is synced.`);
@@ -1090,7 +1093,7 @@ async function renderGate(msg = '') {
 $('#gate-retry').onclick = () => { gisReady = null; authDown = false; location.reload(); };
 async function bootAuth() {
   await initAuth();
-  if (user) { unlockApp(); render(); maybeWelcome(); } else lockApp();
+  if (user) { unlockApp(); window.ensureWorkoutSeed?.(); render(); maybeWelcome(); } else lockApp();
 }
 
 window.addEventListener('hashchange', () => go(location.hash.slice(1)));

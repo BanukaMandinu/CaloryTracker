@@ -557,3 +557,61 @@ body.locked > :not(#gate):not(script):not(svg){display:none!important}
   #view-activity.on{grid-template-rows:auto auto 1fr}
   .dtitle{min-width:9rem}
 }
+
+/* ===== workout plan ===== */
+.flip{transform:rotate(180deg)}
+.wk-grid{display:block}
+.wk-name{font-family:var(--font-d);font-size:1.5rem;letter-spacing:-.02em;font-weight:800;margin:.2rem 0 .5rem;display:flex;align-items:center;gap:.5rem}
+.wk-prev{list-style:none;margin:.3rem 0;padding:0}
+.wk-prev li{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-top:1px solid var(--line);font-size:.95rem}
+.wk-prev li:first-child{border-top:0}
+.wk-prev li span{min-width:0}
+.wk-prev li small{display:block;color:var(--muted);font-size:.78rem}
+.wk-prev li b{white-space:nowrap;color:var(--accent)}
+details.wkday{border-top:1px solid var(--line);padding:0}
+details.wkday:first-of-type{border-top:0}
+details.wkday summary{display:flex;align-items:center;gap:.8rem;padding:.9rem 0}
+.wk-n{display:inline-grid;place-items:center;flex:none;width:2.2rem;height:2.2rem;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-d);font-weight:800}
+.wk-t{flex:1;min-width:0}
+.wk-t b{display:block}
+.wk-t small{display:block;color:var(--muted);font-size:.8rem}
+.wk-log{display:flex;justify-content:space-between;gap:1rem;padding:.4rem 0;font-size:.9rem;border-top:1px dashed var(--line)}
+.wk-log span{color:var(--muted);text-align:right}
+.wk-today .wk-name{font-size:1.35rem}
+
+/* logging a session */
+.ex{padding:1.1rem}
+.ex-h{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.2rem}
+.ex-h b{font-family:var(--font-d);font-size:1.05rem}
+.ex-note,.ex-last{margin:.1rem 0}
+.sets{margin:.6rem 0 .3rem}
+.sh,.sr{display:grid;grid-template-columns:2rem 1fr 1fr 2.8rem;gap:.5rem;align-items:center}
+.sets.time .sh,.sets.time .sr{grid-template-columns:2rem 1fr 1.4fr 2.8rem}
+.sh{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:0 0 .3rem}
+.sr{margin-bottom:.45rem}
+.sr .sn{text-align:center;font-weight:800;color:var(--muted)}
+.sr input{min-height:2.8rem;text-align:center;font-weight:700;font-size:1.05rem;padding:.3rem}
+.sr .tg{text-align:center;color:var(--muted);font-weight:600;font-size:.9rem}
+.tick{display:grid;place-items:center;width:2.8rem;height:2.8rem;border-radius:14px;border:1.5px solid var(--line);background:var(--surface2);color:var(--muted);cursor:pointer}
+.sr.done .tick{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+.sr.done input{background:var(--accent-soft);border-color:transparent}
+.ws-end .btn.block{margin-top:.7rem}
+
+/* plan editor */
+.edday-h{display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem}
+.edday-h input{flex:1;font-weight:800;font-family:var(--font-d);font-size:1.05rem}
+.exrow{display:grid;gap:.5rem;padding:.9rem 0;border-top:1px solid var(--line)}
+.exrow-b{display:grid;grid-template-columns:.7fr 1.2fr 1.3fr;gap:.5rem}
+.exrow-c{display:flex;gap:.2rem;justify-content:flex-end}
+.chipbtn.on{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.ed-end .row{margin-top:0}
+
+@media(min-width:1100px){
+  .wk-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1.4rem;align-items:start}
+  .wk-col{min-width:0}
+  dialog.sheet{width:min(100vw,720px)}
+}
+
+.wk-week .item .n{flex:0 0 5.2rem}
+.wk-week .item .n b{overflow:visible;white-space:normal}
+.wk-wn{flex:1;min-width:0;line-height:1.25;font-size:.95rem}

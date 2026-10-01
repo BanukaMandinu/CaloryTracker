@@ -72,7 +72,7 @@
 
 <nav class="nav" id="nav" aria-label="Main">
   <a href="#today" data-view="today"><svg class="i"><use href="#i-today"/></svg><span>Today</span></a>
-  <a href="#activity" data-view="activity"><svg class="i"><use href="#i-flame"/></svg><span>Activity</span></a>
+  <a href="#workout" data-view="workout" data-also="activity"><svg class="i"><use href="#i-dumbbell"/></svg><span>Workout</span></a>
   <a href="#add" data-view="add" class="fab" aria-label="Add food"><svg class="i"><use href="#i-plus"/></svg><span>Add food</span></a>
   <a href="#progress" data-view="progress" data-also="history"><svg class="i"><use href="#i-chart"/></svg><span>Progress</span></a>
   <a href="#settings" data-view="settings" data-also="science"><svg class="i"><use href="#i-gear"/></svg><span>Profile</span></a>
@@ -89,8 +89,12 @@
 
 
 
+<!-- WORKOUT PLAN -->
+<section id="view-workout" class="view"></section>
+
 <!-- ACTIVITY -->
 <section id="view-activity" class="view">
+  <div id="atabs"></div>
   <div id="act-summary"></div>
   <div class="card a-steps">
     <div class="card-h"><h2>Steps</h2><span class="muted small" id="steps-goal"></span></div>
@@ -450,5 +454,6 @@
 
 <div id="toast" popover="manual" role="status" aria-live="polite"><span id="toast-t"></span><button id="toast-undo" hidden>Undo</button></div>
 <script src="app.js"></script>
+<script src="workout.js"></script>
 </body>
 </html>
