@@ -42,11 +42,13 @@
   const W = () => db.workout;
   const hasPlan = () => !!W()?.days?.length;
   const dayById = id => W()?.days.find(d => d.id === id);
+  const picksOf = () => (W().picks ||= {});
   const sessions = () => db.sessions || (db.sessions = []);
   const sortedSessions = () => [...sessions()].sort((a, b) => a.date === b.date ? a.startedAt - b.startedAt : a.date < b.date ? -1 : 1);
   const wdOf = iso => new Date(iso + 'T12:00:00').getDay();
-  const dayLabel = iso => iso === todayISO() ? 'Today' : iso === addDays(todayISO(), 1) ? 'Tomorrow' : `${WD[wdOf(iso)]} ${new Date(iso + 'T12:00:00').getDate()}`;
+  const dnum = iso => new Date(iso + 'T12:00:00').getDate();
   const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  const fmtLong = iso => iso === todayISO() ? `Today · ${fmtDate(iso)}` : iso === addDays(todayISO(), 1) ? `Tomorrow · ${fmtDate(iso)}` : iso === addDays(todayISO(), -1) ? `Yesterday · ${fmtDate(iso)}` : fmtDate(iso);
   const isFixed = d => d.weekday !== '' && d.weekday != null;
   function targetsOf(e) {
     const raw = String(e.reps || '').trim(), parts = raw.split(',').map(s => s.trim()).filter(Boolean);
@@ -58,34 +60,59 @@
   const firstNum = t => (String(t).match(/\d+(\.\d+)?/) || [''])[0];
   const volumeOf = s => Math.round(s.logs.reduce((a, l) => a + (l.kind === 'reps' ? l.sets.reduce((b, x) => b + (x.done ? num(x.w) * num(x.r) : 0), 0) : 0), 0));
   const doneSets = s => s.logs.reduce((a, l) => a + l.sets.filter(x => x.done).length, 0);
+  // typical length of a workout: average of your last sessions of that day, else a sensible default
+  function usualMinutes(pd) {
+    const past = sortedSessions().filter(s => s.dayId === pd.id && s.minutes).slice(-3);
+    return past.length ? (Math.round(past.reduce((a, s) => a + s.minutes, 0) / past.length / 5) * 5 || 60) : (pd.met >= 7 ? 45 : 60);
+  }
 
-  // rolling cycle + fixed weekdays + rest days, projected for the next days
+  // Schedule: your own choice for a date wins, then fixed weekdays and rest days, then the rolling cycle (which only moves on when you finish a session).
   const rollDays = () => W().days.filter(d => !isFixed(d));
   function lastRollIndex(roll) {
     const ids = roll.map(d => d.id), last = sortedSessions().filter(s => ids.includes(s.dayId)).pop();
     return last ? ids.indexOf(last.dayId) : -1;
   }
   function projection(n = 7) {
-    const w = W(), roll = rollDays(), out = []; let ptr = roll.length ? (lastRollIndex(roll) + 1) % roll.length : 0;
+    const w = W(), roll = rollDays(), picks = picksOf(), out = []; let ptr = roll.length ? (lastRollIndex(roll) + 1) % roll.length : 0;
     for (let i = 0; i < n; i++) {
-      const date = addDays(todayISO(), i), wd = wdOf(date), done = sessions().filter(s => s.date === date);
+      const date = addDays(todayISO(), i), wd = wdOf(date), done = sessions().filter(s => s.date === date), pick = picks[date];
       if (done.length) { out.push({ date, done }); continue; }
-      const fixed = w.days.find(d => isFixed(d) && +d.weekday === wd);
-      let day = null;
-      if (fixed) day = fixed; else if (!(w.rest || []).includes(wd) && roll.length) { day = roll[ptr % roll.length]; ptr++; }
-      out.push({ date, day, done: [] });
+      let day = null, picked = false;
+      if (pick === 'rest') picked = true;
+      else if (pick && dayById(pick)) { day = dayById(pick); picked = true; const ri = roll.findIndex(d => d.id === day.id); if (ri >= 0) ptr = (ri + 1) % roll.length; }
+      else {
+        const fixed = w.days.find(d => isFixed(d) && +d.weekday === wd);
+        if (fixed) day = fixed; else if (!(w.rest || []).includes(wd) && roll.length) { day = roll[ptr % roll.length]; ptr++; }
+      }
+      out.push({ date, day, done: [], picked });
     }
     return out;
   }
+  function entryFor(date) {
+    const t = todayISO();
+    if (date < t) return { date, done: sessions().filter(s => s.date === date), day: null, past: true };
+    const n = Math.round((new Date(date) - new Date(t)) / 864e5) + 1;
+    return projection(n)[n - 1];
+  }
   const positionOf = d => `${W().days.indexOf(d) + 1} of ${W().days.length}`;
+  const estKcal = (pd, date) => Math.round(workoutKcal(pd.met || 5, usualMinutes(pd), weightOn(date)));
+
+  // The workout planned for today counts towards today's calories out until you log the real one (a setting in Profile).
+  window.plannedWorkoutKcal = d => {
+    try {
+      if (!hasPlan() || d !== todayISO() || db.settings.countPlanned === 'off') return 0;
+      const p = projection(1)[0];
+      return !p || p.done.length || !p.day ? 0 : estKcal(p.day, d);
+    } catch { return 0; }
+  };
 
   // ---------- Today card on the home screen ----------
   window.workoutTodayCard = () => {
     if (!hasPlan() || cur !== todayISO()) return '';
-    const p = projection(3)[0];
-    if (p.done.length) { const s = p.done[p.done.length - 1]; return `<div class="card wk-today"><div class="card-h"><h2>Today's workout</h2><span class="muted small">Done</span></div><p class="wk-name good">${ico('check')} ${esc(s.dayName)}</p><p class="muted small">${s.minutes} min · ${r0(s.kcal)} kcal · ${doneSets(s)} sets${volumeOf(s) ? ` · ${r0(volumeOf(s))} kg lifted` : ''}</p><a class="btn" href="#workout">Open workout</a></div>`; }
-    if (!p.day) return `<div class="card wk-today"><div class="card-h"><h2>Today's workout</h2></div><p class="wk-name">Rest day</p><p class="muted small">Recover well. Your next session is on the Workout tab.</p><a class="btn" href="#workout">See schedule</a></div>`;
-    return `<div class="card wk-today"><div class="card-h"><h2>Today's workout</h2><span class="muted small">Workout ${positionOf(p.day)}</span></div><p class="wk-name">${esc(p.day.name)}</p><p class="muted small">${p.day.exercises.length} exercises</p><div class="row"><button class="btn primary" data-wk-start="${esc(p.day.id)}" data-date="${p.date}">${ico('dumbbell')}Start workout</button><a class="btn" href="#workout">View plan</a></div></div>`;
+    const p = projection(1)[0], head = `<div class="card-h"><h2>Today's workout</h2>`;
+    if (p.done.length) { const s = p.done[p.done.length - 1]; return `<div class="card wk-today">${head}<span class="good small">${ico('check')} Done</span></div><p class="wk-name">${esc(s.dayName)}</p><p class="muted small">${s.minutes} min · ${r0(s.kcal)} kcal${doneSets(s) ? ` · ${doneSets(s)} sets` : ''}${volumeOf(s) ? ` · ${r0(volumeOf(s))} kg lifted` : ''}</p><a class="btn" href="#workout">Open workout</a></div>`; }
+    if (!p.day) return `<div class="card wk-today">${head}</div><p class="wk-name">Rest day</p><p class="muted small">Recover well, or pick a workout if you feel like training.</p><div class="row"><button class="btn primary" data-wk-pick="${p.date}">Choose a workout</button></div></div>`;
+    return `<div class="card wk-today">${head}<span class="muted small">Workout ${positionOf(p.day)}</span></div><p class="wk-name">${esc(p.day.name)}</p><p class="muted small">${p.day.exercises.length} exercises · about ${usualMinutes(p.day)} min · ~${r0(estKcal(p.day, p.date))} kcal</p><div class="row"><button class="btn primary" data-wk-start="${esc(p.day.id)}" data-date="${p.date}">${ico('dumbbell')}Start</button><button class="btn" data-wk-markdone="${esc(p.day.id)}" data-date="${p.date}">${ico('check')}Mark done</button><button class="btn quiet" data-wk-pick="${p.date}">Change</button></div></div>`;
   };
 
   // ---------- Workout page ----------
@@ -95,30 +122,54 @@
       el.innerHTML = tabs + `<div class="card"><div class="empty">${ico('dumbbell')}<p><b>No workout plan yet</b><br>Build your own: add days, exercises, sets and reps, then log your weights.</p></div><div class="row end"><button class="btn primary" data-wk-new>Create my plan</button></div></div>`;
       return;
     }
-    const proj = projection(7), today = proj[0], w = W();
-    const dayOptions = w.days.map((d, i) => `<option value="${esc(d.id)}">${i + 1}. ${esc(d.name)}</option>`).join('');
-    const pick = today.day || (today.done.length ? null : rollDays()[0] || w.days[0]);
-    const preview = d => d.exercises.slice(0, 6).map(e => `<li><span>${esc(e.name)}</span><b>${esc(schemeText(e))}</b></li>`).join('') + (d.exercises.length > 6 ? `<li class="muted small">+ ${d.exercises.length - 6} more</li>` : '');
-    const todayCard = today.done.length
-      ? `<div class="card"><div class="card-h"><h2>Today</h2><span class="muted small">${fmtDate(today.date)}</span></div><p class="wk-name good">${ico('check')} Done: ${esc(today.done[today.done.length - 1].dayName)}</p><p class="muted small">Nice work. You can still log another session below.</p></div>`
-      : `<div class="card"><div class="card-h"><h2>${today.day ? "Today's workout" : 'Rest day'}</h2><span class="muted small">${today.day ? `Workout ${positionOf(today.day)}` : fmtDate(today.date)}</span></div>
-          ${today.day ? `<p class="wk-name">${esc(today.day.name)}</p><ul class="wk-prev">${preview(today.day)}</ul>` : '<p class="muted">No workout planned today. Rest and recover, or train anyway below.</p>'}</div>`;
-    const startCard = `<div class="card"><h2>Start a workout</h2>
-        <div class="grid-form"><label class="span2">Workout<select id="wk-day">${dayOptions}</select></label><label class="span2">Date<input type="date" id="wk-date" value="${todayISO()}" max="${addDays(todayISO(), 30)}"></label></div>
-        <button class="btn primary block" data-wk-startsel>${ico('dumbbell')}Start</button></div>`;
-    const week = `<div class="card"><h2>Next 7 days</h2><div class="list wk-week">${proj.map(p => `<div class="item"><div class="n"><b>${dayLabel(p.date)}</b><span>${fmtDate(p.date)}</span></div>${p.done.length ? `<span class="wk-wn good">${ico('check')} ${esc(p.done[p.done.length - 1].dayName)}</span>` : p.day ? `<span class="wk-wn"><b>${esc(p.day.name)}</b></span><button class="btn sm" data-wk-start="${esc(p.day.id)}" data-date="${p.date}">Start</button>` : '<span class="wk-wn muted">Rest</span>'}</div>`).join('')}</div>
-        <p class="muted small">The cycle moves on when you finish a session, so a missed day never loses your place.</p></div>`;
-    const days = `<div class="card"><div class="card-h"><h2>Your plan</h2><button class="btn sm" data-wk-edit>${ico('pencil')}Edit plan</button></div>${w.days.map((d, i) => `<details class="wkday"><summary><span class="wk-n">${i + 1}</span><span class="wk-t"><b>${esc(d.name)}</b><small>${esc(d.label || '')}${d.label ? ' · ' : ''}${d.exercises.length} exercises${isFixed(d) ? ` · every ${WDL[+d.weekday]}` : ''}</small></span></summary>
+    const w = W(), t = todayISO(), te = entryFor(t);
+    let hero;
+    if (te.done.length) { const s = te.done[te.done.length - 1]; hero = `<div class="wk-hero done"><small>${fmtLong(t)}</small><h2>${ico('check')} ${esc(s.dayName)}</h2><p>Done · ${s.minutes} min · ${r0(s.kcal)} kcal${doneSets(s) ? ` · ${doneSets(s)} sets` : ''}</p><div class="row"><button class="btn" data-wk-pick="${t}">Do another</button><button class="btn quiet" data-wk-undo="${esc(s.id)}">Undo</button></div></div>`; }
+    else if (te.day) hero = `<div class="wk-hero"><small>${fmtLong(t)} · Workout ${positionOf(te.day)}</small><h2>${esc(te.day.name)}</h2><p>${te.day.exercises.length} exercises · about ${usualMinutes(te.day)} min · ~${r0(estKcal(te.day, t))} kcal</p>
+        <div class="row"><button class="btn pop" data-wk-start="${esc(te.day.id)}" data-date="${t}">${ico('dumbbell')}Start workout</button><button class="btn ghost" data-wk-markdone="${esc(te.day.id)}" data-date="${t}">${ico('check')}Mark done</button></div><button class="wk-change" data-wk-pick="${t}">Not this one? Change or skip today</button></div>`;
+    else hero = `<div class="wk-hero rest"><small>${fmtLong(t)}</small><h2>Rest day</h2><p>Nothing planned. Recover well, or train anyway.</p><div class="row"><button class="btn pop" data-wk-pick="${t}">Choose a workout</button></div></div>`;
+
+    const days = [addDays(t, -1), ...Array.from({ length: 6 }, (_, i) => addDays(t, i))];
+    const strip = `<div class="card"><h2>This week</h2><div class="wk-strip">${days.map(d => { const e = entryFor(d), lbl = e.done?.length ? `<i class="ok">${ico('check')}</i>` : e.day ? `<i class="num">${w.days.indexOf(e.day) + 1}</i>` : `<i class="rest">${e.past ? '' : 'Rest'}</i>`;
+        return `<button class="wchip${d === t ? ' today' : ''}${e.done?.length ? ' done' : ''}" data-wk-pick="${d}" aria-label="${fmtDate(d)}"><small>${WD[wdOf(d)]}</small><b>${dnum(d)}</b>${lbl}</button>`; }).join('')}</div>
+        <p class="muted small">Tap any day to choose its workout, skip it, or mark it done. The number is the workout's place in your plan.</p></div>`;
+
+    const plan = `<div class="card"><div class="card-h"><h2>Your workouts</h2><button class="btn sm" data-wk-edit>${ico('pencil')}Edit</button></div>${w.days.map((d, i) => `<details class="wkday"><summary><span class="wk-n">${i + 1}</span><span class="wk-t"><b>${esc(d.name)}</b><small>${esc(d.label || '')}${d.label ? ' · ' : ''}${d.exercises.length} exercises${isFixed(d) ? ` · ${WDL[+d.weekday]}s` : ''}</small></span></summary>
         <ul class="wk-prev">${d.exercises.map(e => `<li><span>${esc(e.name)}${e.note ? `<small>${esc(e.note)}</small>` : ''}</span><b>${esc(schemeText(e))}</b></li>`).join('')}</ul>
-        <div class="row"><button class="btn sm primary" data-wk-start="${esc(d.id)}" data-date="${todayISO()}">Start this day</button></div></details>`).join('')}</div>`;
+        <div class="row"><button class="btn sm primary" data-wk-start="${esc(d.id)}" data-date="${t}">Start</button><button class="btn sm" data-wk-markdone="${esc(d.id)}" data-date="${t}">Mark done</button></div></details>`).join('')}</div>`;
     const recent = sortedSessions().slice(-8).reverse();
-    const hist = `<div class="card"><h2>Recent sessions</h2>${recent.length ? recent.map(s => `<details class="wkday"><summary><span class="wk-t"><b>${esc(s.dayName)}</b><small>${fmtDate(s.date)} · ${s.minutes} min · ${doneSets(s)} sets${volumeOf(s) ? ` · ${r0(volumeOf(s))} kg` : ''}</small></span></summary>
+    const hist = `<div class="card"><h2>Recent sessions</h2>${recent.length ? recent.map(s => `<details class="wkday"><summary><span class="wk-t"><b>${esc(s.dayName)}</b><small>${fmtDate(s.date)} · ${s.minutes} min${doneSets(s) ? ` · ${doneSets(s)} sets` : ' · marked done'}${volumeOf(s) ? ` · ${r0(volumeOf(s))} kg` : ''}</small></span></summary>
         ${s.logs.map(l => `<div class="wk-log"><b>${esc(l.name)}</b><span>${l.sets.filter(x => x.done || x.w || x.r).map(x => l.kind === 'time' ? esc(x.r || 'done') : `${x.w || '–'}×${x.r || '–'}`).join(' · ') || '–'}</span></div>`).join('')}
-        <div class="row"><button class="btn sm danger" data-wk-delsession="${esc(s.id)}">Delete session</button></div></details>`).join('') : `<div class="empty">${ico('history')}<p>Your finished sessions will appear here.</p></div>`}</div>`;
-    el.innerHTML = tabs + `<div class="wk-grid"><div class="wk-col">${todayCard}${startCard}${week}</div><div class="wk-col">${days}${hist}</div></div>`;
-    const sel = $('#wk-day'); if (sel && pick) sel.value = pick.id;
+        <div class="row"><button class="btn sm danger" data-wk-delsession="${esc(s.id)}">Delete</button></div></details>`).join('') : `<div class="empty">${ico('history')}<p>Finished sessions will appear here.</p></div>`}</div>`;
+    el.innerHTML = tabs + `<div class="wk-grid"><div class="wk-col">${hero}${strip}</div><div class="wk-col">${plan}${hist}</div></div>`;
   }
   window.renderWorkout = renderWorkout;
+
+  // ---------- choose a workout for a day (or skip it, or mark it done) ----------
+  let PK = null;
+  function renderPick() {
+    const w = W(), e = entryFor(PK.date), past = !!e.past;
+    $('#wp-title').textContent = fmtLong(PK.date);
+    const doneLine = e.done?.length ? `<p class="good small">${ico('check')} Already done: ${esc(e.done[e.done.length - 1].dayName)}</p>` : '';
+    $('#wp-body').innerHTML = `${doneLine}<p class="muted small">${past ? 'Pick the workout you did.' : 'Choose what you will do on this day.'}</p>
+      <div class="pickgrid">${w.days.map((d, i) => `<button type="button" class="pickrow${PK.sel === d.id ? ' on' : ''}" data-wp-sel="${esc(d.id)}" role="radio" aria-checked="${PK.sel === d.id}"><span class="wk-n">${i + 1}</span><span class="wk-t"><b>${esc(d.name)}</b><small>${d.exercises.length} exercises</small></span><span class="pk-tick">${ico('check')}</span></button>`).join('')}
+        ${past ? '' : `<button type="button" class="pickrow${PK.sel === 'rest' ? ' on' : ''}" data-wp-sel="rest" role="radio" aria-checked="${PK.sel === 'rest'}"><span class="wk-n">–</span><span class="wk-t"><b>Rest day</b><small>Skip training; your cycle keeps its place</small></span><span class="pk-tick">${ico('check')}</span></button>`}</div>
+      <div class="pk-actions">
+        <button class="btn pop" data-wp-act="start"${!PK.sel || PK.sel === 'rest' ? ' disabled' : ''}>${ico('dumbbell')}Start workout</button>
+        <button class="btn" data-wp-act="done"${!PK.sel || PK.sel === 'rest' ? ' disabled' : ''}>${ico('check')}Mark as done</button>
+        ${past ? '' : `<button class="btn quiet" data-wp-act="save">Just save my choice</button>`}
+        <button class="btn quiet" data-wp-act="close">Cancel</button></div>`;
+  }
+  function openPick(date) {
+    const e = entryFor(date); PK = { date, sel: e.day?.id || (e.picked || (!e.past && !e.done?.length && !e.day) ? 'rest' : '') };
+    if (e.done?.length && !e.day) PK.sel = '';
+    renderPick(); $('#wk-pick').showModal();
+  }
+  function applyPick() {
+    if (PK.date < todayISO()) return;
+    const picks = picksOf(); picks[PK.date] = PK.sel || undefined; if (!PK.sel) delete picks[PK.date];
+    Object.keys(picks).forEach(k => { if (k < addDays(todayISO(), -2)) delete picks[k]; });
+  }
 
   // ---------- logging a session ----------
   let S0 = null, sessionDirty = false;
@@ -163,26 +214,37 @@
       <div class="card ws-end"><div class="grid-form"><label>Duration (min)<input type="number" min="1" max="360" inputmode="numeric" data-s="minutes" value="${s.minutes || est}"></label><label>Note <span class="opt">optional</span><input data-s="notes" value="${esc(s.notes)}" maxlength="120" placeholder="How did it feel?"></label></div>
         <button class="btn primary block" data-wk-finish>Finish and save</button><button class="btn quiet block" data-wk-discard>Discard workout</button></div>`;
   }
+  // record a finished session and put its calories on that day
+  function recordSession(s, pd) {
+    sessions().push(s); db.sessions = sortedSessions().slice(-300);
+    if (W()) delete picksOf()[s.date];
+    day(s.date).workouts.push({ id: nid(), cat: 'gym', type: s.dayName, min: s.minutes, kcal: s.kcal, note: s.quick ? 'Marked done' : 'From my plan' + (s.notes ? ': ' + s.notes : ''), sessionId: s.id });
+    save(); render();
+  }
   function finishSession() {
     const s = S0, pd = dayById(s.dayId), minutes = Math.max(1, Math.round(num($('#ws-body [data-s="minutes"]').value)) || 1);
     if (!doneSets(s) && !confirm('No sets are ticked. Save this workout anyway?')) return;
     s.minutes = minutes; s.notes = $('#ws-body [data-s="notes"]').value.trim(); s.met = pd?.met || s.met || 5;
     s.kcal = Math.round(workoutKcal(s.met, minutes, weightOn(s.date)));
     s.logs.forEach(l => { l.sets = l.sets.filter(x => x.done || x.w !== '' || x.r !== ''); });
-    sessions().push(s); db.sessions = sortedSessions().slice(-300);
-    day(s.date).workouts.push({ id: nid(), cat: 'gym', type: s.dayName, min: minutes, kcal: s.kcal, note: 'From my plan' + (s.notes ? ': ' + s.notes : ''), sessionId: s.id });
-    clearDraft(); sessionDirty = false; save(); $('#wk-session').close(); S0 = null; render();
-    toast(`Workout saved · ${r0(s.kcal)} kcal burned · ${doneSets(s)} sets`);
+    clearDraft(); sessionDirty = false; $('#wk-session').close(); S0 = null;
+    recordSession(s, pd); toast(`Workout saved · ${r0(s.kcal)} kcal`);
+  }
+  // quick "I did this one": no sets, uses your usual duration
+  function markDone(dayId, date) {
+    const pd = dayById(dayId); if (!pd) return;
+    const minutes = usualMinutes(pd), s = { id: nid(), date, dayId, dayName: pd.name, met: pd.met || 5, startedAt: Date.now(), minutes, kcal: Math.round(workoutKcal(pd.met || 5, minutes, weightOn(date))), notes: '', quick: true, logs: [] };
+    recordSession(s, pd); toast(`${pd.name} done · ${r0(s.kcal)} kcal`, () => deleteSession(s.id, true));
   }
   function closeSession() {
     if (S0 && (sessionDirty || doneSets(S0)) && !confirm('Close without saving? Your progress is kept as a draft you can continue.')) return;
     $('#wk-session').close();
   }
-  function deleteSession(id) {
-    const s = sessions().find(x => x.id === id); if (!s || !confirm('Delete this session?')) return;
+  function deleteSession(id, silent) {
+    const s = sessions().find(x => x.id === id); if (!s || (!silent && !confirm('Delete this session?'))) return;
     db.sessions = sessions().filter(x => x.id !== id);
     const d = db.days[s.date]; if (d) d.workouts = d.workouts.filter(w => w.sessionId !== id);
-    save(); render(); toast('Session deleted');
+    save(); render(); if (!silent) toast('Session deleted');
   }
 
   // ---------- plan editor ----------
@@ -228,16 +290,28 @@
   // ---------- wiring ----------
   document.body.insertAdjacentHTML('beforeend', `
     <dialog id="wk-session" class="sheet" aria-labelledby="ws-title"><div class="sheet-h"><b id="ws-title"></b><button class="icon-btn" data-wk-close="session" aria-label="Close">${ico('close')}</button></div><div class="sheet-body" id="ws-body"></div></dialog>
+    <dialog id="wk-pick" class="pick" aria-labelledby="wp-title"><div class="pick-h"><b id="wp-title"></b><button class="icon-btn" data-wp-act="close" aria-label="Close">${ico('close')}</button></div><div id="wp-body"></div></dialog>
     <dialog id="wk-editor" class="sheet" aria-labelledby="we-title"><div class="sheet-h"><b id="we-title">Edit workout plan</b><button class="icon-btn" data-eact="cancel" aria-label="Close">${ico('close')}</button></div><div class="sheet-body" id="we-body"></div></dialog>`);
   $('#wk-session').addEventListener('cancel', e => { e.preventDefault(); closeSession(); });
   $('#wk-editor').addEventListener('cancel', e => { e.preventDefault(); closeEditor(); });
   $('#wk-session').addEventListener('close', () => { S0 = null; });
+  $('#wk-pick').addEventListener('close', () => { PK = null; });
 
   document.addEventListener('click', e => {
     const t = e.target.closest('button,a'); if (!t) return;
     const d = t.dataset;
     if (d.wkStart) { openSession(d.wkStart, d.date || todayISO()); return; }
-    if (d.wkStartsel !== undefined) { const date = $('#wk-date').value || todayISO(); openSession($('#wk-day').value, date); return; }
+    if (d.wkPick) { openPick(d.wkPick); return; }
+    if (d.wkMarkdone) { markDone(d.wkMarkdone, d.date || todayISO()); return; }
+    if (d.wkUndo) { deleteSession(d.wkUndo, true); return; }
+    if (d.wpSel && PK) { PK.sel = d.wpSel; renderPick(); return; }
+    if (d.wpAct && PK) {
+      const act = d.wpAct, date = PK.date, sel = PK.sel;
+      if (act === 'close') { $('#wk-pick').close(); return; }
+      applyPick(); $('#wk-pick').close();
+      if (act === 'start') openSession(sel, date); else if (act === 'done') markDone(sel, date); else render();
+      return;
+    }
     if (d.wkNew !== undefined) { db.workout = { v: 1, rest: [], days: [{ id: nid(), name: 'Day 1', label: '', met: 5, weekday: '', exercises: [E('', 3, 10)] }] }; save(); openEditor(); render(); return; }
     if (d.wkEdit !== undefined) { openEditor(); return; }
     if (d.wkDelsession) { deleteSession(d.wkDelsession); return; }

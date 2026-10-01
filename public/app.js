@@ -176,7 +176,7 @@ const FOODS = [
 const KEY = 'bmct.v1';
 const DEFAULTS = () => ({
   settings: { sex: 'male', age: 30, heightCm: 175, weightKg: 75, bodyFat: '', waist: '', neck: '', hip: '', goalWeight: '', goalDate: '',
-    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '', planMode: 'auto', manualDeficit: '', manualTarget: '', calibrate: 'on', maintOverride: '' },
+    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '', planMode: 'auto', manualDeficit: '', manualTarget: '', calibrate: 'on', maintOverride: '', countPlanned: 'on' },
   days: {}, weights: {}, recent: [], custom: [], workout: null, sessions: []
 });
 function load() {
@@ -247,7 +247,8 @@ function expRaw(d = cur) {
   const base = num(s.maintOverride) > 0 ? num(s.maintOverride) : bmr(w).v * num(s.baseline);
   const st = stepsKcal(Math.max(0, num(dd.steps) - expectedSteps()), w);
   const wk = (dd.workouts || []).reduce((a, x) => a + num(x.kcal), 0);
-  return { base, steps: st, workouts: wk, total: base + st + wk };
+  const pl = window.plannedWorkoutKcal ? window.plannedWorkoutKcal(d) : 0; // today's planned workout, until the real one is logged
+  return { base, steps: st, workouts: wk, planned: pl, total: base + st + wk + pl };
 }
 // Personal calibration (energy-balance method): over the last 4 weeks, calories out = average intake - (weight trend x 7,700 kcal/kg).
 // The ratio of that measured figure to the formula nudges every estimate toward YOUR metabolism, limited to +/-20% and scaled by how much data there is.
@@ -284,7 +285,7 @@ function calibrate() {
 }
 function expenditure(d = cur) {
   const r = expRaw(d), k = calibration().k;
-  return { base: r.base * k, steps: r.steps * k, workouts: r.workouts * k, total: r.total * k, k };
+  return { base: r.base * k, steps: r.steps * k, workouts: r.workouts * k, planned: r.planned * k, total: r.total * k, k };
 }
 const calNote = () => {
   const c = calibration();
@@ -427,7 +428,7 @@ function renderToday() {
       <div class="ht"><span class="hti">${ico('target')}</span><b>${r0(b.kcal)}</b><span>Daily target</span></div>
     </div>
     <details class="hdet"><summary>See the details</summary>
-      <div class="breakdown"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>calories out</span></div>
+      <div class="breakdown"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span>${e.planned > 0 ? `<i>+</i><span><b>${r0(e.planned)}</b>planned workout</span>` : ''}<i>=</i><span><b>${r0(e.total)}</b>calories out</span></div>
       <div class="verdict ${v.cls}">${ico(v.icon)}<div><b>${v.head}</b><span>${v.sub}</span></div></div>
       <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps above what your activity level already assumes (about ${r0(expectedSteps())} a day) and workouts are added on top.${calNote()}${planText(b)}</p>
     </details>
@@ -542,7 +543,7 @@ function fillSettings() {
   const s = S(), set = (id, v) => $('#' + id).value = v ?? '';
   set('s-sex', s.sex); set('s-age', s.age); set('s-height', s.heightCm); set('s-weight', curWeight()); set('s-bf', s.bodyFat);
   set('s-waist', s.waist); set('s-neck', s.neck); set('s-hip', s.hip); set('s-goal', s.goalWeight); set('s-goaldate', s.goalDate);
-  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl); set('s-deficit', s.manualDeficit); set('s-target', s.manualTarget); setPlanUI(s.planMode); set('s-calib', s.calibrate || 'on'); set('s-maint', s.maintOverride);
+  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl); set('s-deficit', s.manualDeficit); set('s-target', s.manualTarget); setPlanUI(s.planMode); set('s-calib', s.calibrate || 'on'); set('s-planned', s.countPlanned || 'on'); set('s-maint', s.maintOverride);
 }
 function renderSettings() {
   const p = plan();
@@ -560,7 +561,7 @@ function addFood(entry) {
   const f = { id: uid(), ...entry };
   day().foods.push(f);
   db.recent = [{ ...entry }, ...db.recent.filter(r => r.name !== entry.name)].slice(0, 25);
-  save(); render(); toast(`Added ${entry.name} (${r0(entry.kcal)} kcal)`);
+  save(); render();
   if ($('#addsheet').open) { sessionAdded.push(entry); renderAdd(); }
 }
 let sessionAdded = [];
@@ -778,9 +779,9 @@ document.addEventListener('click', e => {
   if (t.dataset.shift) { cur = addDays(cur, +t.dataset.shift); if (cur > todayISO()) cur = todayISO(); render(); }
   if (t.dataset.view === 'add' || t.dataset.addmeal) { e.preventDefault(); openAdd(t.dataset.addmeal); return; }
   if (t.id === 'sheet-close' || t.id === 'sheet-done') { $('#addsheet').close(); return; }
-  if (t.dataset.water) { const d = day(); d.water = Math.max(0, num(d.water) + +t.dataset.water); save(); render(); toast(+t.dataset.water > 0 ? `+${t.dataset.water} ml water` : 'Removed 250 ml'); }
+  if (t.dataset.water) { const d = day(); d.water = Math.max(0, num(d.water) + +t.dataset.water); save(); render(); }
   if (t.dataset.meal) { addMeal = t.dataset.meal; renderMealChips(); }
-  if (t.dataset.addsteps) { const d = day(); d.steps = num(d.steps) + +t.dataset.addsteps; save(); render(); toast(`+${r0(+t.dataset.addsteps)} steps`); }
+  if (t.dataset.addsteps) { const d = day(); d.steps = num(d.steps) + +t.dataset.addsteps; save(); render(); }
   if (t.dataset.min) { $('#workout-form').min.value = t.dataset.min; updateWorkoutPreview(); }
   if (t.dataset.cat) { const f = $('#workout-form'); f.cat.value = t.dataset.cat; $$('[data-cat]', f).forEach(b => { const on = b === t; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }); }
   if (t.dataset.sex) { $('#welcome-form').dataset.sex = t.dataset.sex; $$('[data-sex]').forEach(b => { const on = b === t; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }); }
@@ -871,7 +872,7 @@ $('#workout-form').onsubmit = e => {
   if (min < 1) return;
   const kcal = f.kcal.value !== '' ? Math.max(0, num(f.kcal.value)) : Math.round(workoutKcal(WORKOUTS[i][1], min));
   day().workouts.push({ id: uid(), cat: f.cat.value, type: WORKOUTS[i][0], min, kcal, note: f.note.value.trim() });
-  save(); f.kcal.value = ''; f.note.value = ''; render(); toast('Workout added');
+  save(); f.kcal.value = ''; f.note.value = ''; render();
 };
 $('#weight-form').onsubmit = e => {
   e.preventDefault(); const w = num($('#weight-input').value); if (w < 20 || w > 400) return;
@@ -883,7 +884,7 @@ $('#settings-form').onsubmit = e => {
   if (g('s-planmode') === 'deficit' && g('s-deficit') === '') { toast('Enter your daily deficit in kcal (use a negative number for a surplus).'); $('#s-deficit').focus(); return; }
   Object.assign(s, { sex: g('s-sex'), age: num(g('s-age')), heightCm: num(g('s-height')), weightKg: num(g('s-weight')), bodyFat: g('s-bf'), waist: g('s-waist'),
     neck: g('s-neck'), hip: g('s-hip'), goalWeight: g('s-goal'), goalDate: g('s-goaldate'), baseline: num(g('s-base')), stepLenCm: g('s-steplen'),
-    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28, waterMl: g('s-water'), planMode: g('s-planmode'), manualDeficit: g('s-deficit'), manualTarget: g('s-target'), calibrate: g('s-calib'), maintOverride: g('s-maint') });
+    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28, waterMl: g('s-water'), planMode: g('s-planmode'), manualDeficit: g('s-deficit'), manualTarget: g('s-target'), calibrate: g('s-calib'), maintOverride: g('s-maint'), countPlanned: g('s-planned') });
   if (s.weightKg >= 20) db.weights[todayISO()] = s.weightKg;
   if (!num(s.startWeight) || oldGoal !== s.goalWeight + '|' + s.goalDate) s.startWeight = curWeight();
   save(); render(); toast('Settings saved');
