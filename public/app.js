@@ -146,7 +146,7 @@ const FOODS = [
 const KEY = 'bmct.v1';
 const DEFAULTS = () => ({
   settings: { sex: 'male', age: 30, heightCm: 175, weightKg: 75, bodyFat: '', waist: '', neck: '', hip: '', goalWeight: '', goalDate: '',
-    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '', planMode: 'auto', manualDeficit: '', manualTarget: '' },
+    startWeight: '', baseline: 1.2, proteinPerKg: 1.8, fatPct: 28, stepLenCm: '', waterMl: '', planMode: 'auto', manualDeficit: '', manualTarget: '', calibrate: 'on', maintOverride: '' },
   days: {}, weights: {}, recent: []
 });
 function load() {
@@ -189,26 +189,88 @@ function bodyFat() {
   if (n !== null && Number.isFinite(n)) return { v: clamp(n), src: 'US Navy method' };
   return { v: clamp(1.2 * bmi() + .23 * num(s.age) - 10.8 * (s.sex === 'male' ? 1 : 0) - 5.4), src: 'Deurenberg estimate' };
 }
-function bmr() {
-  const s = S(), w = curWeight();
+// Weight on a given day (latest weigh-in on or before it), so older diary days use the weight you actually had then.
+function weightOn(d) {
+  const ds = Object.keys(db.weights).sort(); let w = null;
+  for (const k of ds) { if (k <= d) w = db.weights[k]; else break; }
+  return w ?? (ds.length ? db.weights[ds[0]] : num(S().weightKg));
+}
+function bmr(w = curWeight()) {
+  const s = S();
   if (num(s.bodyFat) > 0) return { v: 370 + 21.6 * w * (1 - num(s.bodyFat) / 100), f: 'Katch-McArdle' };
   return { v: 10 * w + 6.25 * num(s.heightCm) - 5 * num(s.age) + (s.sex === 'male' ? 5 : -161), f: 'Mifflin-St Jeor' };
 }
 const stepLenM = () => (num(S().stepLenCm) || num(S().heightCm) * (S().sex === 'male' ? .415 : .413)) / 100;
-const stepsKcal = steps => .5 * curWeight() * steps * stepLenM() / 1000; // 0.5 kcal/kg/km net walking cost
-const workoutKcal = (met, min) => (met - 1) * curWeight() * min / 60;
+const stepsKcal = (steps, w = curWeight()) => .5 * w * steps * stepLenM() / 1000; // 0.5 kcal/kg/km net walking cost
+const workoutKcal = (met, min, w = curWeight()) => (met - 1) * w * min / 60;
+// Steps your activity level already assumes (Tudor-Locke & Bassett 2004 step bands), so walking is not counted twice.
+const expectedSteps = () => Math.round(3000 + (Math.min(1.5, Math.max(1.2, num(S().baseline) || 1.2)) - 1.2) / .1 * 2667);
 
 function totals(d = cur) {
   const t = Object.fromEntries(NUTR.map(n => [n[0], 0]));
   (db.days[d]?.foods || []).forEach(f => NUTR.forEach(n => t[n[0]] += num(f[n[0]])));
   return t;
 }
-function expenditure(d = cur) {
-  const dd = db.days[d] || { steps: 0, workouts: [] };
-  const base = bmr().v * num(S().baseline);
-  const st = stepsKcal(num(dd.steps));
-  const wk = dd.workouts.reduce((a, w) => a + num(w.kcal), 0);
+// Formula estimate for one day: resting burn x daily-life level (or your own figure) + steps above the level's assumption + workouts.
+function expRaw(d = cur) {
+  const dd = db.days[d] || { steps: 0, workouts: [] }, w = weightOn(d), s = S();
+  const base = num(s.maintOverride) > 0 ? num(s.maintOverride) : bmr(w).v * num(s.baseline);
+  const st = stepsKcal(Math.max(0, num(dd.steps) - expectedSteps()), w);
+  const wk = (dd.workouts || []).reduce((a, x) => a + num(x.kcal), 0);
   return { base, steps: st, workouts: wk, total: base + st + wk };
+}
+// Personal calibration (energy-balance method): over the last 4 weeks, calories out = average intake - (weight trend x 7,700 kcal/kg).
+// The ratio of that measured figure to the formula nudges every estimate toward YOUR metabolism, limited to +/-20% and scaled by how much data there is.
+let calCache = null;
+function calibration() {
+  const s = S(), key = `${db.updated}|${todayISO()}|${s.calibrate}|${s.maintOverride}`;
+  if (calCache?.key === key) return calCache.v;
+  const v = calibrate(); calCache = { key, v }; return v;
+}
+function calibrate() {
+  const s = S();
+  if (num(s.maintOverride) > 0) return { k: 1, status: 'override' };
+  if (s.calibrate === 'off') return { k: 1, status: 'off' };
+  const today = todayISO(), start = addDays(today, -28), need = { logged: 10, weighIns: 4, span: 10 };
+  const pts = Object.keys(db.weights).filter(d => d >= start && d <= today).sort().map(d => ({ d, w: db.weights[d] }));
+  const days = Array.from({ length: 28 }, (_, i) => addDays(today, -(i + 1))); // finished days only
+  const first = pts[0]?.d, last = pts[pts.length - 1]?.d;
+  const span = pts.length > 1 ? (new Date(last) - new Date(first)) / 864e5 : 0;
+  const inSpan = first ? days.filter(d => d >= first && d <= last) : [];
+  const logged = inSpan.filter(d => totals(d).kcal >= 800);
+  const info = { k: 1, status: 'learning', need, weighIns: pts.length, span, logged: days.filter(d => totals(d).kcal >= 800).length };
+  if (pts.length < need.weighIns || span < need.span || logged.length < need.logged) return info;
+  if (logged.length / inSpan.length < .6) return { ...info, status: 'sparse' };
+  const t0 = new Date(first).getTime(), xs = pts.map(p => (new Date(p.d) - t0) / 864e5), ys = pts.map(p => p.w);
+  const mx = xs.reduce((a, b) => a + b) / xs.length, my = ys.reduce((a, b) => a + b) / ys.length;
+  const sxx = xs.reduce((a, x) => a + (x - mx) ** 2, 0), slope = sxx ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / sxx : 0; // kg/day
+  if (Math.abs(slope) * 7 > 1.5) return { ...info, status: 'noisy' };
+  const intake = logged.reduce((a, d) => a + totals(d).kcal, 0) / logged.length;
+  const observed = intake - slope * KCAL_PER_KG;
+  const formula = logged.reduce((a, d) => a + expRaw(d).total, 0) / logged.length;
+  const raw = formula > 0 ? observed / formula : 1, clamped = Math.min(1.2, Math.max(.8, raw));
+  const conf = Math.min(1, logged.length / 21) * Math.min(1, span / 14);
+  return { ...info, status: 'calibrated', k: 1 + conf * (clamped - 1), raw, conf, observed, formula, slope, logged: logged.length };
+}
+function expenditure(d = cur) {
+  const r = expRaw(d), k = calibration().k;
+  return { base: r.base * k, steps: r.steps * k, workouts: r.workouts * k, total: r.total * k, k };
+}
+const calNote = () => {
+  const c = calibration();
+  if (c.status === 'calibrated') return ` Fine-tuned ${c.k >= 1 ? '+' : '−'}${Math.abs(Math.round((c.k - 1) * 100))}% from your own food and weight logs.`;
+  if (c.status === 'learning') return ' Still learning from your logs (see Profile).';
+  if (c.status === 'override') return ' Using your own maintenance figure.';
+  return '';
+};
+function maintStatus() {
+  const c = calibration();
+  if (c.status === 'override') return `Using your own maintenance figure (${r0(num(S().maintOverride))} kcal/day). Fine-tuning is off.`;
+  if (c.status === 'off') return 'Fine-tuning is off. Maintenance comes from the formula only, which can be 10–20% off for an individual.';
+  if (c.status === 'sparse') return 'You logged food on too few days between your weigh-ins to fine-tune. Log most days (at least 60%) for a better estimate.';
+  if (c.status === 'noisy') return 'Your recent weight changes look too large to be reliable (over 1.5 kg/week), so fine-tuning is paused.';
+  if (c.status === 'learning') return `<b>Learning your metabolism.</b> Last 4 weeks: ${c.logged} of ${c.need.logged} logged days, ${c.weighIns} of ${c.need.weighIns} weigh-ins, ${Math.floor(c.span)} of ${c.need.span}+ days apart. Log food and weigh yourself regularly and your estimate will adjust to you.`;
+  return `<b>Fine-tuned from your logs.</b> Over the last ${c.logged} logged days your measured burn was about ${r0(c.observed)} kcal/day, against ${r0(c.formula)} from the formula. Estimates are adjusted ${c.k >= 1 ? '+' : '−'}${Math.abs(Math.round((c.k - 1) * 100))}% (confidence ${Math.round(c.conf * 100)}%).`;
 }
 // Goal planner: dynamic energy-balance model (simplified from Hall et al., Lancet 2011).
 // Daily calorie burn falls by about ADAPT kcal for every kg of body weight lost (and rises when gaining), so a fixed daily deficit
@@ -335,7 +397,7 @@ function renderToday() {
     <details class="hdet"><summary>See the details</summary>
       <div class="breakdown"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>calories out</span></div>
       <div class="verdict ${v.cls}">${ico(v.icon)}<div><b>${v.head}</b><span>${v.sub}</span></div></div>
-      <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top.${planText(b)}</p>
+      <p><b>Maintenance</b> is your resting burn times your activity level (${r1(num(S().baseline))}×, set in Profile). Steps above what your activity level already assumes (about ${r0(expectedSteps())} a day) and workouts are added on top.${calNote()}${planText(b)}</p>
     </details>
   </div>
 
@@ -433,15 +495,16 @@ function fillSettings() {
   const s = S(), set = (id, v) => $('#' + id).value = v ?? '';
   set('s-sex', s.sex); set('s-age', s.age); set('s-height', s.heightCm); set('s-weight', curWeight()); set('s-bf', s.bodyFat);
   set('s-waist', s.waist); set('s-neck', s.neck); set('s-hip', s.hip); set('s-goal', s.goalWeight); set('s-goaldate', s.goalDate);
-  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl); set('s-deficit', s.manualDeficit); set('s-target', s.manualTarget); setPlanUI(s.planMode);
+  set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl); set('s-deficit', s.manualDeficit); set('s-target', s.manualTarget); setPlanUI(s.planMode); set('s-calib', s.calibrate || 'on'); set('s-maint', s.maintOverride);
 }
 function renderSettings() {
   const p = plan();
   $('#plan-suggest').innerHTML = p && !p.expired
     ? `<b>Suggested for your goal: ${r0(Math.abs(p.deficit))} kcal/day ${p.deficit >= 0 ? 'deficit' : 'surplus'}</b> (about ${r1(Math.abs(p.perWeek))} kg/week). Your calorie burn falls as you lose weight, so this is a little stricter than the simple 7,700 kcal/kg rule (${r0(Math.abs(p.simple))} kcal/day).${p.capped ? ' Limited to a safe pace.' : ''}`
     : p?.expired ? 'Your goal date has passed. Choose a new date above.' : 'Set a goal weight and date above to get a suggested deficit.';
-  const bf = bodyFat(), b = bmr(), bm = bmi();
-  $('#derived').innerHTML = [[r1(bm), 'BMI · ' + bmiCat(bm)], [r1(bf.v) + '%', 'Body fat · ' + bf.src], [r0(b.v), 'BMR kcal · ' + b.f], [r0(b.v * num(S().baseline)), 'Maintenance at rest-day baseline']]
+  $('#maint-status').innerHTML = maintStatus();
+  const bf = bodyFat(), b = bmr(), bm = bmi(), mt = expenditure(todayISO()).base;
+  $('#derived').innerHTML = [[r1(bm), 'BMI · ' + bmiCat(bm)], [r1(bf.v) + '%', 'Body fat · ' + bf.src], [r0(b.v), 'BMR kcal · ' + b.f], [r0(mt), 'Maintenance · resting + daily life']]
     .map(x => `<div class="stat"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
 }
 
@@ -727,7 +790,7 @@ $('#settings-form').onsubmit = e => {
   if (g('s-planmode') === 'deficit' && g('s-deficit') === '') { toast('Enter your daily deficit in kcal (use a negative number for a surplus).'); $('#s-deficit').focus(); return; }
   Object.assign(s, { sex: g('s-sex'), age: num(g('s-age')), heightCm: num(g('s-height')), weightKg: num(g('s-weight')), bodyFat: g('s-bf'), waist: g('s-waist'),
     neck: g('s-neck'), hip: g('s-hip'), goalWeight: g('s-goal'), goalDate: g('s-goaldate'), baseline: num(g('s-base')), stepLenCm: g('s-steplen'),
-    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28, waterMl: g('s-water'), planMode: g('s-planmode'), manualDeficit: g('s-deficit'), manualTarget: g('s-target') });
+    proteinPerKg: num(g('s-ppk')) || 1.8, fatPct: num(g('s-fatpct')) || 28, waterMl: g('s-water'), planMode: g('s-planmode'), manualDeficit: g('s-deficit'), manualTarget: g('s-target'), calibrate: g('s-calib'), maintOverride: g('s-maint') });
   if (s.weightKg >= 20) db.weights[todayISO()] = s.weightKg;
   if (!num(s.startWeight) || oldGoal !== s.goalWeight + '|' + s.goalDate) s.startWeight = curWeight();
   save(); render(); toast('Settings saved');

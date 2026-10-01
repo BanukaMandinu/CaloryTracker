@@ -176,6 +176,15 @@
       <div id="plan-deficit" hidden><label>Daily deficit (kcal) <span class="opt">negative number = surplus</span><input id="s-deficit" type="number" min="-1500" max="1500" step="10" inputmode="numeric"></label><p class="muted small">Your target each day = calories out − this deficit, so it grows when you log steps and workouts.</p></div>
       <div id="plan-target" hidden><label>Daily calorie target (kcal)<input id="s-target" type="number" min="800" max="6000" step="10" inputmode="numeric"></label><p class="muted small">A fixed number every day, whatever your activity.</p></div>
     </div>
+    <div class="card" id="maint-card">
+      <h2>Maintenance accuracy</h2>
+      <p class="plan-suggest" id="maint-status"></p>
+      <div class="grid-form">
+        <label>Fine-tune with my logs<select id="s-calib"><option value="on">On (recommended)</option><option value="off">Off</option></select></label>
+        <label>My own maintenance (kcal) <span class="opt">optional</span><input id="s-maint" type="number" min="800" max="6000" step="10" inputmode="numeric"></label>
+      </div>
+      <p class="muted small">Know your maintenance from a lab test or months of careful tracking? Enter it and the app uses it instead of the formula.</p>
+    </div>
     <div class="card">
       <h2>About you</h2>
       <div class="grid-form">
@@ -275,6 +284,14 @@
       <li><b>Fiber</b> ≥ 14 g per 1,000 kcal (Institute of Medicine). <b>Sugar</b> and <b>saturated fat</b> under 10% of calories, and <b>sodium</b> under 2,000 mg (WHO guidance).</li>
     </ul>
 
+    <h3>How daily maintenance (calories out) is estimated</h3>
+    <p>Formulas give a population average, and an individual can differ by 10–20%. So the app works in two stages.</p>
+    <ol>
+      <li><b>Formula.</b> Resting burn (Mifflin-St Jeor, or Katch-McArdle with a measured body-fat %) × your daily activity level (1.2 mostly sitting to 1.5 very active), <i>plus</i> steps and workouts. To avoid counting walking twice, only steps <b>above</b> what your activity level already assumes (about 3,000 a day for sitting up to 11,000 for very active, from the Tudor-Locke &amp; Bassett step bands) are added, at about 0.5 kcal per kg per km. Past days use the weight you had on that day.</li>
+      <li><b>Personal calibration.</b> Energy balance says <code>calories out = average intake − (weight trend × 7,700 kcal/kg)</code> (Hall 2008). Over the last 4 weeks the app measures your average logged intake and the slope of your weigh-ins, and compares the result with the formula for the same days. Every estimate is then nudged by that ratio, limited to ±20% and scaled by how much data there is: at least 10 logged days, 4 weigh-ins spread over 10+ days and food logged on 60% of days. It pauses if your weight swings by more than 1.5 kg/week.</li>
+    </ol>
+    <p>Calibration is only as good as your logging: if you under-report food, your maintenance will look too low. Weigh yourself at a consistent time, and log most days. You can switch it off, or enter your own maintenance figure, in Profile.</p>
+
     <h3>Goal-based deficit and your own plan</h3>
     <p>Your calorie burn is not constant: it falls by roughly <b>20–25 kcal/day for every kg lost</b> (and rises as you gain), so the same daily deficit loses weight more slowly over time (Hall et al. 2011, 2012). The app uses a simplified dynamic energy-balance model. With Δ = kg to change, T = days to your goal date and ρ = 7,700 kcal/kg:</p>
     <p><code>deficit = 22 × Δ ÷ (1 − e^(−22·T/ρ))</code></p>
@@ -300,6 +317,7 @@
       <li>Morton RW et al. Br J Sports Med 2018;52:376–84.</li>
       <li>Shcherbina A et al. J Pers Med 2017;7:3.</li>
       <li>Tudor-Locke C, Bassett DR. Sports Med 2004;34:1–8.</li>
+      <li>Hall KD. What is the required energy deficit per unit weight loss? Int J Obes 2008;32:573–6.</li>
       <li>Hall KD et al. Energy balance and its components: implications for body weight regulation. Am J Clin Nutr 2012;95:989–94.</li>
       <li>NHLBI. Clinical guidelines on the identification, evaluation, and treatment of overweight and obesity in adults, 1998.</li>
       <li>EFSA Panel on Dietetic Products, Nutrition and Allergies. Scientific opinion on dietary reference values for water. EFSA Journal 2010;8(3):1459.</li>
