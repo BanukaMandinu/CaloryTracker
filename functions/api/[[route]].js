@@ -66,6 +66,20 @@ export async function onRequest({ request, env, params }) {
 
   if (route === 'config' && method === 'GET') return json({ clientId: env.GOOGLE_CLIENT_ID || null });
 
+  // Model file proxy: Safari cannot follow Hugging Face's cross-origin redirects, so we fetch server-side and serve same-origin.
+  // Locked to one public model repo, GET only, so it cannot be used as an open proxy.
+  if (route.startsWith('hf/') && (method === 'GET' || method === 'HEAD')) {
+    const path = route.slice(3), allowed = 'Xenova/clip-vit-base-patch32/resolve/main/';
+    if (!path.startsWith(allowed) || path.includes('..') || path.length > 200) return json({ error: 'not found' }, 404);
+    try {
+      const up = await fetch('https://huggingface.co/' + path, { redirect: 'follow', headers: { 'user-agent': 'BMCaloryTracker/1.0' }, cf: { cacheEverything: true, cacheTtl: 604800 } });
+      if (!up.ok) return json({ error: 'upstream ' + up.status }, up.status === 404 ? 404 : 502);
+      const h = new Headers({ 'content-type': up.headers.get('content-type') || 'application/octet-stream', 'cache-control': 'public, max-age=604800' });
+      const len = up.headers.get('content-length'); if (len) h.set('content-length', len);
+      return new Response(method === 'HEAD' ? null : up.body, { status: 200, headers: h });
+    } catch { return json({ error: 'upstream unavailable' }, 502); }
+  }
+
   // Food search proxy (Open Food Facts blocks browser CORS on its fast search endpoint). Public, read-only, cached.
   if (route === 'foods' && method === 'GET') {
     const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);

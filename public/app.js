@@ -1,4 +1,8 @@
 'use strict';
+// Older Safari lacks OffscreenCanvas, which the image model needs. A plain <canvas> is a close enough stand-in.
+if (typeof OffscreenCanvas === 'undefined') {
+  window.OffscreenCanvas = class { constructor(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; c.convertToBlob = o => new Promise(r => c.toBlob(r, o?.type, o?.quality)); return c; } };
+}
 /* BM Calory Tracker – all data stays in localStorage. No accounts, no paid APIs. */
 
 // ---------- helpers ----------
@@ -489,6 +493,8 @@ async function getClassifier(onProgress) {
   if (clf) return clf;
   const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
   env.allowLocalModels = false;
+  // Use our own same-origin proxy when it exists (works in Safari); otherwise fall back to Hugging Face directly.
+  try { const r = await fetch('/api/hf/Xenova/clip-vit-base-patch32/resolve/main/config.json'); if (r.ok) env.remoteHost = location.origin + '/api/hf/'; } catch { }
   // phones (especially iOS Safari) are strict: no worker threads, small quantised model, plain WASM backend
   env.backends.onnx.wasm.numThreads = 1; env.backends.onnx.wasm.proxy = false;
   clf = await pipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32', { device: 'wasm', dtype: 'q8', progress_callback: onProgress });
@@ -636,6 +642,7 @@ async function api(method, path, body) {
 }
 function schedulePush() { clearTimeout(pushT); pushT = setTimeout(pushNow, 1500); }
 async function pushNow() {
+  pushT = null;
   if (!user) return;
   try { await api('PUT', '/api/data', JSON.stringify(db)); setSync('Synced'); }
   catch (e) { if (e.status === 401) { user = null; renderAccount(); toast('Session expired. Sign in again.'); } else setSync('Offline: will retry on next change'); }
@@ -657,35 +664,57 @@ function loadGIS() {
   return window.google?.accounts?.id ? Promise.resolve() : new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 }
 async function onGoogleCredential(resp) {
-  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; renderAccount(); toast('Signed in'); await pull(); }
+  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; renderAccount(); toast('Signed in'); await pull(); afterSignIn(); }
   catch { toast('Sign-in failed. Please try again.'); }
+}
+// Google Identity Services is set up once and can render its button anywhere (Profile page or the welcome screen).
+let gisReady = null;
+function setupGoogle() {
+  return gisReady ||= (async () => {
+    if (location.protocol === 'file:') return false;
+    try {
+      const cfg = await (await fetch('/api/config')).json();
+      if (!cfg.clientId || cfg.clientId.startsWith('PASTE')) return false;
+      await loadGIS();
+      google.accounts.id.initialize({ client_id: cfg.clientId, callback: onGoogleCredential, auto_select: false });
+      return true;
+    } catch { return false; }
+  })();
 }
 async function renderAccount() {
   const box = $('#account-body'), chip = $('#acct-t');
   if (user) {
     chip.textContent = (user.name || user.email || 'Account').split(' ')[0];
     box.innerHTML = `<div class="row">${user.picture ? `<img class="avatar" src="${esc(user.picture)}" alt="" referrerpolicy="no-referrer">` : ''}<div><b>${esc(user.name)}</b><br><span class="muted small">${esc(user.email)}</span></div></div>
-      <p class="muted small" id="sync-msg">${esc(syncMsg)}</p>
+      <p class="muted small" id="sync-msg">${esc(syncMsg || 'Signed in. Changes sync automatically between your devices.')}</p>
       <div class="row"><button class="btn" id="sync-now">Sync now</button><button class="btn" id="logout-btn">Sign out</button></div>`;
-    $('#sync-now').onclick = () => pushNow().then(() => toast('Synced'));
+    $('#sync-now').onclick = async () => { await autoPull(); await pushNow(); toast('Synced'); };
     $('#logout-btn').onclick = async () => { try { await api('POST', '/api/auth/logout', {}); } catch { } user = null; syncMsg = ''; window.google?.accounts?.id?.disableAutoSelect(); renderAccount(); toast('Signed out'); };
     return;
   }
   chip.textContent = 'Sign in';
-  box.innerHTML = '<p class="muted small">Sign in with Google to keep your data safe and synced across your laptop and phone. It is optional, and the app works without it.</p><div id="g-btn"></div><p class="muted small" id="g-msg"></p>';
-  if (location.protocol === 'file:') { $('#g-msg').textContent = 'Sign-in works on the deployed site (or a local server).'; return; }
-  try {
-    const cfg = await (await fetch('/api/config')).json();
-    if (!cfg.clientId || cfg.clientId.startsWith('PASTE')) { $('#g-msg').textContent = 'Google sign-in is not configured yet (see README).'; return; }
-    await loadGIS();
-    google.accounts.id.initialize({ client_id: cfg.clientId, callback: onGoogleCredential, auto_select: false });
-    google.accounts.id.renderButton($('#g-btn'), { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill' });
-  } catch { $('#g-msg').textContent = 'Sign-in is unavailable offline.'; }
+  box.innerHTML = '<p class="muted small">Sign in with Google to keep your data safe and synced across your phone and laptop.</p><div id="g-btn" class="gbtn"></div><p class="muted small" id="g-msg"></p>';
+  if (await setupGoogle()) google.accounts.id.renderButton($('#g-btn'), { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill' });
+  else $('#g-msg').textContent = location.protocol === 'file:' ? 'Sign-in works on the deployed site.' : 'Sign-in is not available right now (offline, or not set up yet).';
 }
 async function initAuth() {
   try { user = (await api('GET', '/api/me')).user; } catch { user = null; }
-  renderAccount(); if (user) pull();
+  renderAccount(); if (user) await pull();
 }
+// Automatic sync: pick up changes made on another device when you come back to the app (never while your own changes are waiting to upload).
+async function autoPull() {
+  if (!user || pushT) return;
+  try {
+    const { db: remote } = await api('GET', '/api/data');
+    if (!remote || (remote.updated || 0) <= (db.updated || 0)) return;
+    const d = DEFAULTS(); db = { ...d, ...remote, settings: { ...d.settings, ...(remote.settings || {}) } };
+    save(false); if (view !== 'settings') fillSettings(); render(); setSync('Synced from cloud'); toast('Updated from your other device');
+  } catch (e) { if (e.status === 401) { user = null; renderAccount(); } }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') autoPull(); });
+window.addEventListener('focus', autoPull);
+setInterval(() => { if (document.visibilityState === 'visible') autoPull(); }, 60000);
+
 // ---------- theme (auto / light / dark) ----------
 function applyTheme(t) {
   const dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -702,11 +731,27 @@ $('#theme-btn').onclick = () => {
 };
 applyTheme(savedTheme());
 
-// ---------- first-run welcome ----------
-function maybeWelcome() {
+// ---------- first-run welcome: sign in first, then a short profile ----------
+async function showWelcomeStep(step) {
+  $('#w-signin').hidden = step !== 'signin'; $('#welcome-form').hidden = step !== 'profile';
+  if (step === 'signin') {
+    if (await setupGoogle()) google.accounts.id.renderButton($('#g-btn-w'), { theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', width: 280 });
+    else $('#g-msg-w').textContent = 'Sign-in is not available right now. You can continue without an account.';
+  } else $('#w-hello').textContent = user ? `Hi ${(user.name || '').split(' ')[0] || 'there'}! ` : '';
+}
+async function maybeWelcome() {
   if (db.onboarded) return;
   if (hasLocalData()) { db.onboarded = true; save(false); return; }
-  $('#welcome-form').dataset.sex = 'male'; $('#welcome').showModal();
+  const ok = !user && await setupGoogle();
+  await showWelcomeStep(ok ? 'signin' : 'profile');
+  $('#welcome').showModal();
+}
+// called after a successful Google sign-in and cloud pull
+function afterSignIn() {
+  if (hasLocalData() && !db.onboarded) { db.onboarded = true; save(false); }
+  const w = $('#welcome'); if (!w.open) return;
+  if (db.onboarded) { w.close(); render(); toast(`Welcome back, ${(user?.name || '').split(' ')[0] || 'there'}. Your data is synced.`); }
+  else showWelcomeStep('profile');
 }
 function finishWelcome(skip) {
   db.onboarded = true;
@@ -721,10 +766,11 @@ function finishWelcome(skip) {
 }
 $('#welcome-form').onsubmit = e => { e.preventDefault(); finishWelcome(false); };
 $('#welcome-skip').onclick = () => finishWelcome(true);
-$('#welcome').addEventListener('cancel', e => { e.preventDefault(); finishWelcome(true); });
+$('#w-nosignin').onclick = () => showWelcomeStep('profile');
+$('#welcome').addEventListener('cancel', e => { e.preventDefault(); $('#w-signin').hidden ? finishWelcome(true) : showWelcomeStep('profile'); });
 
 window.addEventListener('hashchange', () => go(location.hash.slice(1)));
 $('#manual-form').meal.innerHTML = mealOptions(addMeal);
-fillSettings(); go(location.hash.slice(1) || 'today'); initAuth(); maybeWelcome();
+fillSettings(); go(location.hash.slice(1) || 'today'); initAuth().then(maybeWelcome);
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { });

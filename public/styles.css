@@ -409,3 +409,9 @@ label{font-size:.9rem;gap:.45rem}
 .hline i{display:none}
 .hline span{display:flex;flex-direction:column;align-items:center;gap:.1rem;font-size:.85rem;opacity:.9}
 .hline b{font-size:1.45rem;margin:0}
+
+/* sign-in step */
+.w-signin{text-align:center}
+.w-signin .w-logo{margin:0 auto 1rem}
+.gbtn{display:flex;justify-content:center;margin:1.4rem 0 .6rem;min-height:44px}
+#w-hello{display:block;font-weight:700;color:var(--text);margin-bottom:.3rem}

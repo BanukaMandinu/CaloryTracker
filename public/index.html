@@ -356,11 +356,20 @@
   </form>
 </dialog>
 
-<dialog id="welcome" aria-labelledby="welcome-title">
-  <form id="welcome-form">
+<dialog id="welcome" aria-labelledby="w-signin-title">
+  <div id="w-signin" class="w-signin">
+    <img src="icon.svg" alt="" width="64" height="64" class="w-logo">
+    <h2 id="w-signin-title">Welcome to BM Calory Tracker</h2>
+    <p class="muted">Sign in to keep your food diary safe and synced between your phone and laptop. It only takes a tap.</p>
+    <div id="g-btn-w" class="gbtn"></div>
+    <p class="muted small" id="g-msg-w" role="status"></p>
+    <button type="button" class="btn quiet block" id="w-nosignin">Continue without an account</button>
+    <p class="muted small">Without an account your data stays on this device only.</p>
+  </div>
+  <form id="welcome-form" hidden>
     <img src="icon.svg" alt="" width="52" height="52" class="w-logo">
-    <h2 id="welcome-title">Welcome to BM Calory Tracker</h2>
-    <p class="muted">Tell us a little about you. We use it to work out your daily energy burn and a calorie budget. You can change everything later in Profile.</p>
+    <h2 id="welcome-title">About you</h2>
+    <p class="muted"><span id="w-hello"></span>We use this to work out your daily energy burn and a calorie budget. You can change everything later in Profile.</p>
     <div class="seg2" role="radiogroup" aria-label="Sex">
       <button type="button" class="on" data-sex="male" role="radio" aria-checked="true">Male</button>
       <button type="button" data-sex="female" role="radio" aria-checked="false">Female</button>
