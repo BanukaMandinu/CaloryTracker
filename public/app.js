@@ -459,6 +459,7 @@ let pUnits = [];
 const pickerUnit = () => pUnits[+$('#picker-unit').value] || { l: 'g', p: 'g', g: 1 };
 const pickerGrams = () => num($('#picker-qty').value) * pickerUnit().g;
 function openPicker(item) {
+  if (document.body.classList.contains('locked')) return;
   pending = item; pUnits = [...(item.units || []), { l: 'g', p: 'g', g: 1 }];
   $('#picker-title').textContent = item.name;
   $('#picker-sub').textContent = `Per 100 g: ${r0(item.per100.kcal)} kcal · P ${r1(item.per100.protein)} · C ${r1(item.per100.carbs)} · F ${r1(item.per100.fat)} g · ${item.src}`;
@@ -676,6 +677,7 @@ function renderAdd() {
   renderMealChips();
 }
 function openAdd(meal) {
+  if (document.body.classList.contains('locked')) return; // nothing opens behind the sign-in screen
   if (meal) addMeal = meal;
   sessionAdded = []; $('#search-input').value = ''; showTab('home'); renderAdd();
   const d = $('#addsheet'); if (!d.open) d.showModal();
@@ -812,7 +814,7 @@ async function renderAccount() {
       if (!confirm('Sign out? Your diary stays safe in your account and is removed from this device.')) return;
       if (!(await pushNow()) && !confirm('Your latest changes could not be uploaded. Sign out anyway? Unsynced changes on this device will be lost.')) return;
       try { await api('POST', '/api/auth/logout', {}); } catch { }
-      user = null; syncMsg = ''; guest = false; wipeLocal(); window.google?.accounts?.id?.disableAutoSelect(); lockApp();
+      user = null; syncMsg = ''; wipeLocal(); window.google?.accounts?.id?.disableAutoSelect(); lockApp();
     };
     return;
   }
@@ -901,7 +903,7 @@ $('#welcome-skip').onclick = () => finishWelcome(true);
 $('#welcome').addEventListener('cancel', e => { e.preventDefault(); finishWelcome(true); });
 
 // ---------- sign-in gate: when signed out, nothing but the login screen is visible ----------
-let guest = false, authDown = false;
+let authDown = false;
 function unlockApp() { document.body.classList.remove('locked'); }
 function lockApp(msg) {
   document.body.classList.add('locked');
@@ -909,19 +911,21 @@ function lockApp(msg) {
   renderGate(msg);
 }
 async function renderGate(msg = '') {
-  $('#gate-spin').hidden = false; $('#g-btn-gate').hidden = true; $('#gate-guest').hidden = true; $('#gate-msg').textContent = '';
+  $('#gate-spin').hidden = false; $('#g-btn-gate').hidden = true; $('#gate-retry').hidden = true; $('#gate-msg').textContent = '';
   const ok = await setupGoogle();
   $('#gate-spin').hidden = true;
-  if (ok) {
+  if (ok && !authDown) {
     $('#g-btn-gate').hidden = false; $('#gate-msg').textContent = msg;
     google.accounts.id.renderButton($('#g-btn-gate'), { theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', width: 280 });
-  } else $('#gate-msg').textContent = 'Sign-in is not available right now. Check your connection and try again.';
-  if (!ok || authDown) { $('#gate-guest').hidden = false; if (authDown) $('#gate-msg').textContent = 'Sign-in is not set up on the server yet.'; }
+  } else {
+    $('#gate-msg').textContent = authDown ? 'Sign-in is not set up on the server yet. Please try again later.' : 'Could not load Google sign-in. Check your connection (or turn off a content blocker for this site) and try again.';
+    $('#gate-retry').hidden = false;
+  }
 }
-$('#gate-guest').onclick = () => { guest = true; unlockApp(); render(); maybeWelcome(); };
+$('#gate-retry').onclick = () => { gisReady = null; authDown = false; location.reload(); };
 async function bootAuth() {
   await initAuth();
-  if (user || guest) { unlockApp(); render(); maybeWelcome(); } else lockApp();
+  if (user) { unlockApp(); render(); maybeWelcome(); } else lockApp();
 }
 
 window.addEventListener('hashchange', () => go(location.hash.slice(1)));
