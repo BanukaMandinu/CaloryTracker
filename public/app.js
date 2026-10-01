@@ -416,6 +416,7 @@ function renderToday() {
   }).join('');
   $('#view-today').innerHTML = `
   ${cur === todayISO() ? greeting() : ''}
+  <div class="tgrid"><div class="tcol">
   <div class="card hero-card">
     <div class="ring"><svg width="220" height="220" viewBox="0 0 220 220" aria-hidden="true"><circle class="rt" cx="110" cy="110" r="${R}"/><circle class="ra${left < 0 ? ' over' : ''}" cx="110" cy="110" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}"/></svg>
       <div class="c"><b>${r0(Math.abs(left))}</b><span>${left < 0 ? 'kcal over target' : 'kcal left to eat'}</span></div></div>
@@ -432,6 +433,7 @@ function renderToday() {
   </div>
 
   <div class="card"><h2>Meals</h2>${meals}</div>
+  </div><div class="tcol">
 
   <div class="card water"><div class="card-h"><h2>Water</h2><span class="wtotal"><b>${fmtWater(wl)}</b> / ${fmtWater(wg)}</span></div>
     <div class="drops" aria-hidden="true">${Array.from({ length: glasses }, (_, i) => `<span class="drop${i < filled ? ' on' : ''}">${ico('drop')}</span>`).join('')}</div>
@@ -444,7 +446,8 @@ function renderToday() {
     <details class="more" style="margin-top:1.2rem"><summary>More nutrients</summary>
       ${bar('Fiber', t.fiber, tg.fiber, 'g', 'var(--accent)')}${bar('Sugar', t.sugar, tg.sugar, 'g', 'var(--warn)', 1)}${bar('Sat. fat', t.satfat, tg.satfat, 'g', 'var(--warn)', 1)}${bar('Sodium', t.sodium, tg.sodium, 'mg', 'var(--warn)', 1)}
     </details>
-  </div>`;
+  </div>
+  </div></div>`;
 }
 
 function renderActivity() {
@@ -453,7 +456,7 @@ function renderActivity() {
   $('#steps-note').textContent = dd.steps ? `${r0(dd.steps)} steps ≈ ${r1(dd.steps * stepLenM() / 1000)} km ≈ ${r0(e.steps)} kcal (step length ${r0(stepLenM() * 100)} cm).` : 'Enter the total from your phone or watch.';
   $('#steps-bar').style.width = Math.min(100, num(dd.steps) / STEP_GOAL * 100) + '%';
   $('#steps-goal').textContent = `${r0(num(dd.steps))} / ${r0(STEP_GOAL)}`;
-  $('#act-summary').innerHTML = `<p class="lead">${r0(e.total)} kcal burned so far <span class="muted">· ${r0(e.base)} maintenance + ${r0(e.steps)} steps + ${r0(e.workouts)} workouts</span></p>`;
+  $('#act-summary').innerHTML = `<p class="lead">${r0(e.total)} kcal burned so far <span class="muted">${r0(e.base)} maintenance + ${r0(e.steps)} steps + ${r0(e.workouts)} workouts</span></p>`;
   $('#workout-list').innerHTML = dd.workouts.length ? dd.workouts.map(w => `<div class="item"><div class="n"><b>${esc(w.type)}</b><span>${w.cat === 'gym' ? 'Gym' : 'Extra'} · ${w.min} min${w.note ? ' · ' + esc(w.note) : ''}</span></div><div class="k">${r0(w.kcal)} kcal</div><button class="icon-btn sm" data-del-w="${w.id}" aria-label="Delete workout">${ico('trash')}</button></div>`).join('') : `<div class="empty">${ico('flame')}<p>No workouts logged.</p></div>`;
   updateWorkoutPreview();
 }

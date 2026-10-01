@@ -503,3 +503,57 @@ body.locked > :not(#gate):not(script):not(svg){display:none!important}
 .check{display:flex;align-items:center;gap:.7rem;font-size:1rem;color:var(--text);font-weight:600}
 .check input{width:1.3rem;height:1.3rem;min-height:0;margin:0;accent-color:var(--accent)}
 .check{flex-direction:row}
+
+/* ===== v5: desktop layout (phones and tablets keep the layouts above) ===== */
+.tgrid{display:block}
+@media(min-width:1100px){
+  :root{--gut:max(1.5rem,calc((100vw - 1400px)/2))}
+  .top{padding-left:var(--gut);padding-right:var(--gut)}
+  .nav{left:var(--gut)}
+  main{max-width:1120px;margin-left:calc(var(--gut) + 224px);margin-right:var(--gut);padding:.4rem 0 2.5rem}
+  .card{padding:1.8rem}
+  h2{font-size:1.3rem}
+
+  /* date bar sits top-left like a toolbar */
+  .daystrip{justify-content:flex-start;gap:1rem;padding:.8rem 0 1.1rem}
+  .dtitle{text-align:left;min-width:12rem}
+
+  /* Today: left column = calories + meals, right column = water + macros */
+  .tgrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:1.4rem;align-items:start}
+  .tcol{min-width:0}
+  .greet{padding-bottom:1.2rem}
+  .hero-card{display:grid;grid-template-columns:auto 1fr;gap:1rem 2.4rem;align-items:center;text-align:left;padding:2.2rem 2.4rem}
+  .hero-card .ring{margin:0}
+  .hero-card .htiles{grid-template-columns:1fr;margin:0;gap:.7rem}
+  .hero-card .ht{flex-direction:row;justify-content:flex-start;gap:.9rem;padding:.85rem 1.1rem;text-align:left}
+  .hero-card .ht .hti{margin:0;order:1}
+  .hero-card .ht>span:last-child{order:2;flex:1;font-size:.95rem}
+  .hero-card .ht b{order:3;font-size:1.55rem}
+  .hero-card .hdet{grid-column:1/-1}
+
+  /* Activity: steps and workouts list on the left, the workout form on the right */
+  #view-activity.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"sum sum" "steps form" "list form";column-gap:1.4rem;align-items:start}
+  #view-activity #act-summary{grid-area:sum}
+  .a-steps{grid-area:steps}.a-form{grid-area:form}.a-list{grid-area:list}
+
+  /* Progress, Diary and Profile flow into two balanced columns */
+  #progress-body{columns:2;column-gap:1.4rem}
+  #progress-body>.card{break-inside:avoid}
+  #view-history.on{columns:2;column-gap:1.4rem;display:block}
+  #view-history .ptabs{column-span:all}
+  .hday{break-inside:avoid}
+  #view-settings.on{columns:2;column-gap:1.4rem;display:block}
+  #view-settings .card{break-inside:avoid}
+  #settings-form{display:contents}
+  #view-science{max-width:860px}
+  dialog.sheet{width:min(100vw,680px)}
+}
+@media(min-width:1500px){
+  main{max-width:1240px}
+  .tgrid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+}
+
+@media(min-width:1100px){
+  #view-activity.on{grid-template-rows:auto auto 1fr}
+  .dtitle{min-width:9rem}
+}
