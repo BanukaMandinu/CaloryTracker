@@ -8,7 +8,7 @@ run_worker_first = ["/api/*"]
 
 [vars]
 # Google OAuth "Web application" client ID (public, not a secret). See README.md
-GOOGLE_CLIENT_ID = ""
+GOOGLE_CLIENT_ID = "954438766416-sn98mrjjb7l62tb5evvq8sfcpsji0hhj.apps.googleusercontent.com"
 
 # KV namespace is created automatically on first deploy (wrangler auto-provisioning).
 [[kv_namespaces]]
