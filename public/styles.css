@@ -496,3 +496,6 @@ body.locked > :not(#gate):not(script):not(svg){display:none!important}
 .spin{width:2rem;height:2rem;margin:1.6rem auto;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 .spin[hidden]{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* the hidden attribute must always win over component display rules (.btn, .gbtn, etc.) */
+[hidden]{display:none!important}
