@@ -345,6 +345,18 @@ function targets() {
 }
 
 // ---------- ui plumbing ----------
+// Styled in-app replacement for the browser's plain confirm() popup. Resolves true (OK) or false (Cancel / Esc).
+function ask({ title = 'Are you sure?', text = '', ok = 'OK', cancel = 'Cancel', danger = false } = {}) {
+  return new Promise(resolve => {
+    const d = $('#ask'), okb = $('#ask-ok'), cb = $('#ask-cancel');
+    $('#ask-title').textContent = title; $('#ask-text').textContent = text; okb.textContent = ok; cb.textContent = cancel; cb.hidden = !cancel;
+    okb.classList.toggle('danger-fill', !!danger);
+    const done = v => { okb.removeEventListener('click', onOk); cb.removeEventListener('click', onNo); d.removeEventListener('cancel', onEsc); d.close(); resolve(v); };
+    const onOk = () => done(true), onNo = () => done(false), onEsc = e => { e.preventDefault(); done(false); };
+    okb.addEventListener('click', onOk); cb.addEventListener('click', onNo); d.addEventListener('cancel', onEsc);
+    d.showModal(); (danger ? cb : okb).focus();
+  });
+}
 let toastT, undoFn = null;
 function toast(msg, undo) {
   const t = $('#toast'); $('#toast-t').textContent = msg; undoFn = undo || null; $('#toast-undo').hidden = !undo;
@@ -546,6 +558,7 @@ function fillSettings() {
   set('s-base', s.baseline); set('s-steplen', s.stepLenCm); set('s-ppk', s.proteinPerKg); set('s-fatpct', s.fatPct); set('s-water', s.waterMl); set('s-deficit', s.manualDeficit); set('s-target', s.manualTarget); setPlanUI(s.planMode); set('s-calib', s.calibrate || 'on'); set('s-planned', s.countPlanned || 'on'); set('s-maint', s.maintOverride);
 }
 function renderSettings() {
+  window.renderNotify?.();
   const p = plan();
   $('#plan-suggest').innerHTML = p && !p.expired
     ? `<b>Suggested for your goal: ${r0(Math.abs(p.deficit))} kcal/day ${p.deficit >= 0 ? 'deficit' : 'surplus'}</b> (about ${r1(Math.abs(p.perWeek))} kg/week). Your calorie burn falls as you lose weight, so this is a little stricter than the simple 7,700 kcal/kg rule (${r0(Math.abs(p.simple))} kcal/day).${p.capped ? ' Limited to a safe pace.' : ''}`
@@ -898,12 +911,12 @@ $('#import-file').onchange = async e => {
   try {
     const j = JSON.parse(await f.text());
     if (!j || typeof j.days !== 'object' || typeof j.settings !== 'object') throw 0;
-    if (!confirm('Replace all current data with this backup?')) return;
+    if (!(await ask({ title: 'Replace your data?', text: 'Everything currently in the app will be replaced by this backup.', ok: 'Replace', danger: true }))) return;
     const d = DEFAULTS(); db = { ...d, ...j, settings: { ...d.settings, ...j.settings } }; if (user) db.owner = ownerOf(user); else delete db.owner; save(); fillSettings(); render(); toast('Backup imported');
   } catch { toast('That file is not a valid backup.'); }
 };
 $('#reset-btn').onclick = async () => {
-  if (!confirm(user ? 'Erase ALL data on this device AND your cloud copy? This cannot be undone.' : 'Erase ALL data on this device? This cannot be undone.')) return;
+  if (!(await ask({ title: 'Erase all data?', text: user ? 'This erases the data on this device and your cloud copy. It cannot be undone.' : 'This erases all data on this device. It cannot be undone.', ok: 'Erase everything', danger: true }))) return;
   if (user) { try { await api('DELETE', '/api/data'); } catch { toast('Could not reach the server; cloud copy not erased.'); return; } }
   db = DEFAULTS(); if (user) db.owner = ownerOf(user); save(false); fillSettings(); render(); toast('All data erased');
 };
@@ -929,10 +942,10 @@ function setSync(m) { syncMsg = m; const el = $('#sync-msg'); if (el) el.textCon
 const hasLocalData = () => Object.values(db.days).some(d => d.foods.length || d.steps || d.workouts.length || d.water) || Object.keys(db.weights).length > 0 || (db.sessions || []).length > 0;
 // Every local copy is stamped with the account that owns it. Another account's diary is never shown or uploaded.
 const ownerOf = u => u?.uid || (u?.email || '').toLowerCase();
-function claimDevice() {
+async function claimDevice() {
   const me = ownerOf(user); if (!me || db.owner === me) return;
   if (db.owner) db = DEFAULTS();                                   // belongs to a different account: discard it
-  else if (hasLocalData() && !confirm(`This device has diary entries that are not linked to an account. Add them to ${user.email}? Choose Cancel to discard them.`)) db = DEFAULTS();
+  else if (hasLocalData() && !(await ask({ title: 'Add this device\'s entries to your account?', text: `This device has diary entries that are not linked to an account. Add them to ${user.email}, or discard them.`, ok: 'Add them', cancel: 'Discard' }))) db = DEFAULTS();
   db.owner = me; save(false, false); fillSettings();
 }
 function adoptRemote(remote) {
@@ -950,7 +963,7 @@ function loadGIS() {
   return window.google?.accounts?.id ? Promise.resolve() : new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 }
 async function onGoogleCredential(resp) {
-  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; try { localStorage.setItem('bmct.hint', JSON.stringify(user)); } catch { } claimDevice(); renderAccount(); await pull(); afterSignIn(); }
+  try { const r = await api('POST', '/api/auth/google', { credential: resp.credential }); user = r.user; try { localStorage.setItem('bmct.hint', JSON.stringify(user)); } catch { } await claimDevice(); renderAccount(); await pull(); afterSignIn(); }
   catch { toast('Sign-in failed. Please try again.'); $('#gate-msg').textContent = 'Sign-in failed. Please try again.'; }
 }
 // Google Identity Services is set up once and can render its button anywhere (Profile page or the welcome screen).
@@ -980,8 +993,8 @@ async function renderAccount() {
       <div class="row"><button class="btn" id="sync-now">Sync now</button><button class="btn" id="logout-btn">Sign out</button></div>`;
     $('#sync-now').onclick = async () => { await autoPull(); await pushNow(); toast('Synced'); };
     $('#logout-btn').onclick = async () => {
-      if (!confirm('Sign out? Your diary stays safe in your account and is removed from this device.')) return;
-      if (!(await pushNow()) && !confirm('Your latest changes could not be uploaded. Sign out anyway? Unsynced changes on this device will be lost.')) return;
+      if (!(await ask({ title: 'Sign out?', text: 'Your diary stays safe in your account and is removed from this device.', ok: 'Sign out' }))) return;
+      if (!(await pushNow()) && !(await ask({ title: 'Changes not uploaded', text: 'Your latest changes could not be uploaded. If you sign out now, they will be lost.', ok: 'Sign out anyway', cancel: 'Stay signed in', danger: true }))) return;
       try { await api('POST', '/api/auth/logout', {}); } catch { }
       user = null; syncMsg = ''; wipeLocal(); window.google?.accounts?.id?.disableAutoSelect(); lockApp();
     };
@@ -1006,7 +1019,7 @@ async function initAuth() {
     else if (!e.status) { try { user = JSON.parse(localStorage.getItem('bmct.hint')); offline = !!user; } catch { } } // no network: stay usable if this device was signed in before
   }
   try { if (user && !offline) localStorage.setItem('bmct.hint', JSON.stringify(user)); else if (!user) localStorage.removeItem('bmct.hint'); } catch { }
-  if (user && !offline) claimDevice();
+  if (user && !offline) await claimDevice();
   renderAccount(); if (user && !offline) await pull();
 }
 // Automatic sync: pick up changes made on another device when you come back to the app (never while your own changes are waiting to upload).

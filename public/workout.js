@@ -188,10 +188,10 @@
         return { exId: e.id, name: e.name, kind: e.kind, note: e.note || '', target: t, sets: t.map((tt, i) => ({ w: e.kind === 'reps' && last ? String(last.sets[Math.min(i, last.sets.length - 1)]?.w ?? '') : '', r: '', done: false })) };
       }) };
   }
-  function openSession(dayId, date) {
+  async function openSession(dayId, date) {
     const day = dayById(dayId); if (!day) return;
     let draft = null; try { draft = JSON.parse(localStorage.getItem(draftKey())); } catch { }
-    if (draft && draft.dayId === dayId && draft.date === date && confirm('Continue the unfinished workout you started?')) S0 = draft;
+    if (draft && draft.dayId === dayId && draft.date === date && await ask({ title: 'Continue your workout?', text: 'You have an unfinished workout from earlier.', ok: 'Continue', cancel: 'Start fresh' })) S0 = draft;
     else S0 = newSession(day, date);
     sessionDirty = false; renderSession(); $('#wk-session').showModal();
   }
@@ -221,9 +221,9 @@
     day(s.date).workouts.push({ id: nid(), cat: 'gym', type: s.dayName, min: s.minutes, kcal: s.kcal, note: s.quick ? 'Marked done' : 'From my plan' + (s.notes ? ': ' + s.notes : ''), sessionId: s.id });
     save(); render();
   }
-  function finishSession() {
+  async function finishSession() {
     const s = S0, pd = dayById(s.dayId), minutes = Math.max(1, Math.round(num($('#ws-body [data-s="minutes"]').value)) || 1);
-    if (!doneSets(s) && !confirm('No sets are ticked. Save this workout anyway?')) return;
+    if (!doneSets(s) && !(await ask({ title: 'Save without any sets?', text: 'No sets are ticked yet. Save this workout anyway?', ok: 'Save anyway', cancel: 'Go back' }))) return;
     s.minutes = minutes; s.notes = $('#ws-body [data-s="notes"]').value.trim(); s.met = pd?.met || s.met || 5;
     s.kcal = Math.round(workoutKcal(s.met, minutes, weightOn(s.date)));
     s.logs.forEach(l => { l.sets = l.sets.filter(x => x.done || x.w !== '' || x.r !== ''); });
@@ -236,12 +236,12 @@
     const minutes = usualMinutes(pd), s = { id: nid(), date, dayId, dayName: pd.name, met: pd.met || 5, startedAt: Date.now(), minutes, kcal: Math.round(workoutKcal(pd.met || 5, minutes, weightOn(date))), notes: '', quick: true, logs: [] };
     recordSession(s, pd); toast(`${pd.name} done · ${r0(s.kcal)} kcal`, () => deleteSession(s.id, true));
   }
-  function closeSession() {
-    if (S0 && (sessionDirty || doneSets(S0)) && !confirm('Close without saving? Your progress is kept as a draft you can continue.')) return;
+  async function closeSession() {
+    if (S0 && (sessionDirty || doneSets(S0)) && !(await ask({ title: 'Leave this workout?', text: 'Your progress is kept as a draft you can continue.', ok: 'Leave', cancel: 'Stay' }))) return;
     $('#wk-session').close();
   }
-  function deleteSession(id, silent) {
-    const s = sessions().find(x => x.id === id); if (!s || (!silent && !confirm('Delete this session?'))) return;
+  async function deleteSession(id, silent) {
+    const s = sessions().find(x => x.id === id); if (!s || (!silent && !(await ask({ title: 'Delete this session?', ok: 'Delete', danger: true })))) return;
     db.sessions = sessions().filter(x => x.id !== id);
     const d = db.days[s.date]; if (d) d.workouts = d.workouts.filter(w => w.sessionId !== id);
     save(); render(); if (!silent) toast('Session deleted');
@@ -281,8 +281,8 @@
     }
     db.workout = ED; save(); $('#wk-editor').close(); ED = null; render(); toast('Plan saved');
   }
-  function closeEditor() {
-    if (ED && JSON.stringify(ED) !== edBefore && !confirm('Discard your changes to the plan?')) return;
+  async function closeEditor() {
+    if (ED && JSON.stringify(ED) !== edBefore && !(await ask({ title: 'Discard changes?', text: 'Your edits to the plan will be lost.', ok: 'Discard', cancel: 'Keep editing', danger: true }))) return;
     $('#wk-editor').close(); ED = null;
   }
   const mv = (a, i, j) => { if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; };
@@ -317,7 +317,7 @@
     if (d.wkDelsession) { deleteSession(d.wkDelsession); return; }
     if (d.wkClose === 'session') { closeSession(); return; }
     if (d.wkFinish !== undefined) { finishSession(); return; }
-    if (d.wkDiscard !== undefined) { if (confirm('Discard this workout?')) { clearDraft(); sessionDirty = false; $('#wk-session').close(); } return; }
+    if (d.wkDiscard !== undefined) { ask({ title: 'Discard this workout?', text: 'Everything you logged in it will be lost.', ok: 'Discard', cancel: 'Keep going', danger: true }).then(ok => { if (ok) { clearDraft(); sessionDirty = false; $('#wk-session').close(); } }); return; }
     if (d.sdone) { const [i, j] = d.sdone.split(':').map(Number), x = S0.logs[i].sets[j]; x.done = !x.done; if (x.done && x.r === '' && S0.logs[i].kind === 'reps') x.r = firstNum(S0.logs[i].target[Math.min(j, S0.logs[i].target.length - 1)]); sessionDirty = true; saveDraft(); renderSession(); return; }
     if (d.sadd !== undefined) { const l = S0.logs[+d.sadd], p = l.sets[l.sets.length - 1]; l.sets.push({ w: p?.w ?? '', r: '', done: false }); l.target.push(l.target[l.target.length - 1]); sessionDirty = true; saveDraft(); renderSession(); return; }
     if (d.sdel !== undefined) { const l = S0.logs[+d.sdel]; if (l.sets.length > 1) { l.sets.pop(); l.target.pop(); sessionDirty = true; saveDraft(); renderSession(); } return; }
@@ -327,12 +327,12 @@
       else if (a === 'cancel') closeEditor();
       else if (a === 'rest') { const k = +d.wd, i = ED.rest.indexOf(k); i >= 0 ? ED.rest.splice(i, 1) : ED.rest.push(k); renderEditor(); }
       else if (a === 'addday') { ED.days.push({ id: nid(), name: `Day ${ED.days.length + 1}`, label: '', met: 5, weekday: '', exercises: [E('', 3, 10)] }); renderEditor(); }
-      else if (a === 'delday') { if (confirm(`Delete "${ED.days[di].name}"?`)) { ED.days.splice(di, 1); renderEditor(); } }
+      else if (a === 'delday') { ask({ title: `Delete "${ED.days[di].name}"?`, text: 'This removes the day and its exercises from your plan.', ok: 'Delete', danger: true }).then(ok => { if (ok && ED) { ED.days.splice(di, 1); renderEditor(); } }); }
       else if (a === 'upday') { mv(ED.days, di, di - 1); renderEditor(); } else if (a === 'downday') { mv(ED.days, di, di + 1); renderEditor(); }
       else if (a === 'addex') { ED.days[di].exercises.push(E('', 3, 10)); renderEditor(); }
       else if (a === 'delex') { ED.days[di].exercises.splice(ei, 1); renderEditor(); }
       else if (a === 'upex') { mv(ED.days[di].exercises, ei, ei - 1); renderEditor(); } else if (a === 'downex') { mv(ED.days[di].exercises, ei, ei + 1); renderEditor(); }
-      else if (a === 'reset') { if (confirm('Replace everything with your original 5-day plan? Your logged sessions are kept.')) { ED = seedPlan(); renderEditor(); } }
+      else if (a === 'reset') { ask({ title: 'Restore your original plan?', text: 'This replaces everything with your original 5-day plan. Your logged sessions are kept.', ok: 'Restore' }).then(ok => { if (ok && ED) { ED = seedPlan(); renderEditor(); } }); }
     }
   });
   const onField = e => {

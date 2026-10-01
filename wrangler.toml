@@ -7,6 +7,8 @@ directory = "./public"
 run_worker_first = ["/api/*"]
 
 [vars]
+# Contact claim for web push services
+VAPID_SUBJECT = "https://calorytracker.banukamandinu.workers.dev"
 # Google OAuth "Web application" client ID (public, not a secret). See README.md
 GOOGLE_CLIENT_ID = "954438766416-sn98mrjjb7l62tb5evvq8sfcpsji0hhj.apps.googleusercontent.com"
 
@@ -16,3 +18,10 @@ binding = "DATA"
 
 # Secret (never put it here):  set SESSION_SECRET in Cloudflare -> Settings -> Variables and Secrets
 # Local dev: create .dev.vars with  SESSION_SECRET=some-long-random-string
+
+# Reminders: check every 15 minutes which reminders are due (free plan allows cron triggers)
+[triggers]
+crons = ["*/15 * * * *"]
+
+# Optional: web push signing keys. If these are not set, a key pair is generated once and kept in KV.
+# Set VAPID_PRIVATE_JWK as a secret and VAPID_PUBLIC_KEY as a variable to manage them yourself (see README).

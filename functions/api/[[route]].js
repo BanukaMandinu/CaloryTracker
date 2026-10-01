@@ -3,6 +3,8 @@
 // Design: least privilege (a user can only touch their own key), input validation, size limits,
 // audit log lines (hashed user id, no PII) via console.log -> Workers Logs.
 
+import { vapidKeys, sanitizePrefs, validSub, validTz, sendPush, subjectOf } from '../../src/push.js';
+
 const SESSION_DAYS = 30;
 const MAX_BODY = 1_000_000; // bytes
 const enc = new TextEncoder();
@@ -67,7 +69,10 @@ export async function onRequest({ request, env, params }) {
   const route = [].concat(params.route || []).join('/');
   const method = request.method;
 
-  if (route === 'config' && method === 'GET') return json({ clientId: env.GOOGLE_CLIENT_ID || null });
+  if (route === 'config' && method === 'GET') {
+    let vapid = null; try { if (env.DATA) vapid = (await vapidKeys(env)).publicKey; } catch { }
+    return json({ clientId: env.GOOGLE_CLIENT_ID || null, vapidPublicKey: vapid });
+  }
 
   // Model file proxy: Safari cannot follow Hugging Face's cross-origin redirects, so we fetch server-side and serve same-origin.
   // Locked to one public model repo, GET only, so it cannot be used as an open proxy.
@@ -127,6 +132,40 @@ export async function onRequest({ request, env, params }) {
   if (route === 'me' && method === 'GET') return session ? json({ user: { uid: await uidOf(session.sub), name: session.name, email: session.email, picture: session.picture } }) : json({ user: null });
   if (!session) return json({ error: 'unauthenticated' }, 401);
 
+  // Reminders (web push). Each account has one record: its devices, its reminder times and what was already sent today.
+  if (route === 'push' || route === 'push/test') {
+    const key = `push:${session.sub}`, load = async () => JSON.parse((await env.DATA.get(key)) || 'null');
+    if (route === 'push/test' && method === 'POST') {
+      const rec = await load(); if (!rec?.subs?.length) return json({ error: 'no devices' }, 404);
+      if (Date.now() - (rec.lastTest || 0) < 10000) return json({ error: 'slow down' }, 429);
+      const keys = await vapidKeys(env), msg = { title: 'Reminders are on', body: 'This is a test. Your reminders will arrive on this device.', url: '/#today', tag: 'test' };
+      let sent = 0; const alive = [], total = rec.subs.length;
+      for (const s of rec.subs) { let st = 0; try { st = await sendPush(s, msg, keys, subjectOf(env)); } catch { } if (st !== 404 && st !== 410) alive.push(s); if (st >= 200 && st < 300) sent++; }
+      rec.subs = alive; rec.lastTest = Date.now(); await env.DATA.put(key, JSON.stringify(rec));
+      return json({ sent, failed: total - sent });
+    }
+    if (route === 'push' && method === 'GET') { const rec = await load(); return json({ devices: rec?.subs?.length || 0, prefs: rec?.prefs || null, tz: rec?.tz || null }); }
+    if (route === 'push' && method === 'PUT') {
+      const text = await request.text(); if (text.length > 6000) return json({ error: 'too large' }, 413);
+      let b; try { b = JSON.parse(text); } catch { return json({ error: 'bad json' }, 400); }
+      if (!b || typeof b !== 'object') return json({ error: 'bad shape' }, 400);
+      const rec = (await load()) || { subs: [], prefs: sanitizePrefs(null), tz: 'UTC', sent: {} };
+      if (b.sub !== undefined) {
+        if (!validSub(b.sub)) return json({ error: 'bad subscription' }, 400);
+        rec.subs = [{ endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth }, added: Date.now() }, ...rec.subs.filter(s => s.endpoint !== b.sub.endpoint)].slice(0, 5);
+      }
+      if (b.prefs !== undefined) rec.prefs = sanitizePrefs(b.prefs);
+      if (b.tz !== undefined) { if (!validTz(b.tz)) return json({ error: 'bad time zone' }, 400); rec.tz = b.tz; }
+      await env.DATA.put(key, JSON.stringify(rec)); await audit('push_update', session.sub);
+      return json({ ok: true });
+    }
+    if (route === 'push' && method === 'DELETE') {
+      let b = {}; try { b = JSON.parse((await request.text()) || '{}'); } catch { }
+      const rec = await load(); if (rec) { rec.subs = b.endpoint ? rec.subs.filter(s => s.endpoint !== b.endpoint) : []; rec.subs.length ? await env.DATA.put(key, JSON.stringify(rec)) : await env.DATA.delete(key); }
+      await audit('push_delete', session.sub); return json({ ok: true });
+    }
+  }
+
   if (route === 'data') {
     const key = `data:${session.sub}`; // key derives only from the verified session
     if (method === 'GET') {
@@ -146,7 +185,7 @@ export async function onRequest({ request, env, params }) {
       return json({ ok: true });
     }
     if (method === 'DELETE') { // right to erasure
-      await env.DATA.delete(key); await env.DATA.delete(`profile:${session.sub}`);
+      await env.DATA.delete(key); await env.DATA.delete(`profile:${session.sub}`); await env.DATA.delete(`push:${session.sub}`);
       await audit('data_delete', session.sub);
       return json({ ok: true });
     }

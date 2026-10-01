@@ -8,7 +8,8 @@
 <title>BM Calory Tracker</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -158,6 +159,8 @@
     <h2>Account</h2>
     <div id="account-body"></div>
   </div>
+
+  <div class="card" id="notify-card"><h2>Reminders</h2><div id="notify-body"><p class="muted small">Loading…</p></div></div>
 
   <form id="settings-form">
     <div class="card">
@@ -453,8 +456,11 @@
   </form>
 </dialog>
 
+<dialog id="ask" aria-labelledby="ask-title"><h2 id="ask-title"></h2><p id="ask-text" class="muted"></p><div class="row end"><button type="button" class="btn" id="ask-cancel"></button><button type="button" class="btn primary" id="ask-ok"></button></div></dialog>
+
 <div id="toast" popover="manual" role="status" aria-live="polite"><span id="toast-t"></span><button id="toast-undo" hidden>Undo</button></div>
 <script src="app.js"></script>
 <script src="workout.js"></script>
+<script src="notify.js"></script>
 </body>
 </html>

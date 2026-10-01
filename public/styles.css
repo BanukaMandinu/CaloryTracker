@@ -488,7 +488,7 @@ dialog.sheet[open]{display:flex;flex-direction:column;animation:slideup .32s cub
 #gate{display:none;position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:1.2rem;overflow:auto;
   background:radial-gradient(900px 500px at 80% -10%,var(--hero2),transparent 60%),linear-gradient(160deg,var(--hero),var(--bg2))}
 body.locked #gate{display:flex}
-body.locked > :not(#gate):not(script):not(svg){display:none!important}
+body.locked > :not(#gate):not(script):not(svg):not(#ask){display:none!important}
 .gate-card{width:min(100%,420px);background:var(--surface);border-radius:32px;padding:2.2rem 1.6rem 1.6rem;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.35)}
 .gate-card h1{font-family:var(--font-d);font-size:1.9rem;letter-spacing:-.03em;margin:.3rem 0 .6rem}
 .gate-card .w-logo{margin:0 auto .5rem;display:block;box-shadow:0 10px 24px rgba(45,99,232,.35)}
@@ -667,3 +667,25 @@ dialog.pick{overflow:hidden}
 @media(min-width:1100px){
   #view-activity.on{grid-template-areas:"sum sum" "steps form" "list form";grid-template-rows:auto auto 1fr}
 }
+
+dialog#ask{width:min(92vw,420px);padding:1.5rem}
+#ask h2{margin-bottom:.4rem}
+#ask .row{margin-top:1.2rem}
+.btn.primary.danger-fill{background:var(--bad);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--bad) 30%,transparent)}
+
+/* reminders */
+.nrow{display:flex;align-items:center;gap:.8rem;padding:.8rem 0;border-top:1px solid var(--line)}
+.nrow.master{border-top:0;padding-top:.2rem}
+.nrow .nlabel{flex:1;min-width:0}
+.nrow .nlabel b{display:block}
+.nrow .nlabel small{display:block;color:var(--muted);font-size:.8rem;line-height:1.3}
+.nrow input[type=time],.nrow select{width:auto;min-width:6.5rem;min-height:2.6rem;font-weight:700;padding:.3rem .6rem}
+.nlist.off{opacity:.45;pointer-events:none}
+.swt{appearance:none;-webkit-appearance:none;flex:none;width:3rem;height:1.8rem;min-height:0;border-radius:999px;border:0;background:var(--line);position:relative;cursor:pointer;transition:background .2s;margin:0;padding:0}
+.swt::after{content:"";position:absolute;top:.2rem;left:.2rem;width:1.4rem;height:1.4rem;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.swt:checked{background:var(--accent)}
+.swt:checked::after{transform:translateX(1.2rem)}
+.swt:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
+.nrow{flex-direction:row}
+.nrow .nlabel{text-align:left}
+.nrow select{min-width:7.8rem}
