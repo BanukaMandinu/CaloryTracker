@@ -226,6 +226,7 @@
         <label>Age<input id="s-age" type="number" min="10" max="100" step="1" inputmode="numeric" required></label>
         <label>Height (cm)<input id="s-height" type="number" min="100" max="250" step="0.1" inputmode="decimal" required></label>
         <label>Current weight (kg)<input id="s-weight" type="number" min="20" max="400" step="0.1" inputmode="decimal" required></label>
+        <label class="span2">Daily activity level <span class="opt">before workouts</span><select id="s-base"><option value="1.2">Mostly sitting (desk job, little walking)</option><option value="1.3">Light: on my feet part of the day</option><option value="1.4">Active: on my feet most of the day</option><option value="1.5">Very active: heavy physical work</option></select></label>
       </div>
       <details class="more"><summary>Body fat measurements <span class="opt">optional</span></summary>
         <div class="grid-form">
@@ -237,13 +238,6 @@
       </details>
       <details class="more"><summary>Advanced energy settings <span class="opt">optional</span></summary>
         <div class="grid-form">
-          <label>Daily-life baseline
-            <select id="s-base">
-              <option value="1.2">Mostly sitting (recommended)</option>
-              <option value="1.3">A lot on my feet</option>
-              <option value="1.4">Physical job</option>
-            </select>
-          </label>
           <label>Step length (cm) <span class="opt">blank = auto</span><input id="s-steplen" type="number" min="30" max="120" step="0.5" inputmode="decimal"></label>
           <label>Protein (g per kg)<input id="s-ppk" type="number" min="0.8" max="3" step="0.1" inputmode="decimal"></label>
           <label>Fat share of calories (%)<input id="s-fatpct" type="number" min="15" max="45" step="1" inputmode="numeric"></label>
@@ -302,7 +296,7 @@
     <p>Most apps multiply BMR by a vague "activity factor", which is usually wrong. Here the parts are counted separately:</p>
     <p><code>Expenditure = BMR × baseline + steps + workouts</code></p>
     <ul>
-      <li><b>Baseline ×1.2</b> covers resting metabolism, the thermic effect of food (about 10% of intake; Westerterp 2004) and ordinary sedentary living.</li>
+      <li><b>Baseline (your activity level: ×1.2 mostly sitting, ×1.3 light, ×1.4 active, ×1.5 very active, excluding workouts)</b> covers resting metabolism, the thermic effect of food (about 10% of intake; Westerterp 2004) and ordinary sedentary living.</li>
       <li><b>Steps</b>: step length ≈ 0.415 × height (men) or 0.413 × height (women). Net walking cost is about <b>0.5 kcal per kg per km</b> (from the ACSM walking equation, 0.1 mL O₂/kg/m). So <code>kcal = 0.5 × kg × steps × step length(km)</code>. Baseline living already includes a little walking, so this slightly overcounts.</li>
       <li><b>Workouts</b> use MET values from the Compendium of Physical Activities (Ainsworth 2011). <code>kcal = (MET − 1) × kg × hours</code>. Subtracting 1 MET avoids counting resting energy twice. If your watch or machine gives a figure, you can enter that instead, though wearables can be off by 30–90% (Shcherbina 2017).</li>
     </ul>
@@ -376,6 +370,7 @@
       <label>Height (cm)<input name="height" type="number" min="100" max="250" step="0.1" inputmode="decimal" value="175" required></label>
       <label>Weight (kg)<input name="weight" type="number" min="20" max="400" step="0.1" inputmode="decimal" value="75" required></label>
       <label>Goal weight (kg)<input name="goal" type="number" min="20" max="400" step="0.1" inputmode="decimal" placeholder="optional"></label>
+      <label class="span2">How active is your normal day? <span class="opt">workouts and steps you log are added on top</span><select name="level"><option value="1.2">Mostly sitting (desk job, little walking)</option><option value="1.3">Light: on my feet part of the day</option><option value="1.4">Active: on my feet most of the day</option><option value="1.5">Very active: heavy physical work</option></select></label>
       <label class="span2">Reach it by <span class="opt">optional</span><input name="goaldate" type="date"></label>
     </div>
     <button class="btn primary block">Get started</button>

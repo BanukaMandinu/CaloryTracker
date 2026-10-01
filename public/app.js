@@ -273,9 +273,10 @@ function renderToday() {
         <div class="hstat"><span>${b.deficit ? 'Goal budget' : 'Budget'}</span><b>${r0(b.kcal)}</b></div>
       </div>
     </div>
+    <div class="breakdown" aria-label="How burned calories add up"><span><b>${r0(e.base)}</b>maintenance</span><i>+</i><span><b>${r0(e.steps)}</b>steps</span><i>+</i><span><b>${r0(e.workouts)}</b>workouts</span><i>=</i><span><b>${r0(e.total)}</b>burned</span></div>
     <div class="verdict ${v.cls}">${ico(v.icon)}<div><b>${v.head}</b><span>${v.sub}</span></div></div>
     <details><summary>How is this worked out?</summary>
-      <p>Burned = resting ${r0(e.base)} + steps ${r0(e.steps)} + workouts ${r0(e.workouts)} kcal. It grows as you log steps and workouts, so a day's deficit looks big until you have eaten.</p>
+      <p><b>Maintenance</b> (${r0(e.base)} kcal) is your resting burn multiplied by your daily activity level (${r1(num(S().baseline))}×, set in Profile). Steps and workouts you log are added on top, so burned (and your budget) rises through the day. A deficit looks big early on, until you have eaten and logged your activity.</p>
       <p>${b.deficit ? `Your budget is what you burn minus the ${r0(b.deficit)} kcal daily deficit needed to hit your goal.` : 'Add a goal weight and date in Profile and the budget will aim you at it.'}</p>
     </details>
   </div>
@@ -735,7 +736,7 @@ function finishWelcome(skip) {
   if (!skip) {
     const f = $('#welcome-form'), s = S();
     Object.assign(s, { sex: f.dataset.sex || 'male', age: num(f.age.value) || 30, heightCm: num(f.height.value) || 175, weightKg: num(f.weight.value) || 75,
-      goalWeight: f.goal.value, goalDate: f.goaldate.value });
+      goalWeight: f.goal.value, goalDate: f.goaldate.value, baseline: num(f.level.value) || 1.2 });
     db.weights[todayISO()] = s.weightKg; s.startWeight = s.weightKg;
   }
   save(); fillSettings(); $('#welcome').close(); render();
