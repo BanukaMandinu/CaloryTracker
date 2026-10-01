@@ -1,15 +1,18 @@
 name = "bm-calory-tracker"
+main = "src/worker.js"
 compatibility_date = "2025-01-01"
-pages_build_output_dir = "./public"
+
+[assets]
+directory = "./public"
+run_worker_first = ["/api/*"]
 
 [vars]
-# Google OAuth "Web application" client ID (not secret). See README.md
-GOOGLE_CLIENT_ID = "PASTE_YOUR_CLIENT_ID.apps.googleusercontent.com"
+# Google OAuth "Web application" client ID (public, not a secret). See README.md
+GOOGLE_CLIENT_ID = ""
 
+# KV namespace is created automatically on first deploy (wrangler auto-provisioning).
 [[kv_namespaces]]
 binding = "DATA"
-id = "PASTE_KV_NAMESPACE_ID"
-preview_id = "PASTE_KV_NAMESPACE_ID"
 
-# Secret (do NOT put here):  npx wrangler pages secret put SESSION_SECRET
+# Secret (never put it here):  set SESSION_SECRET in Cloudflare -> Settings -> Variables and Secrets
 # Local dev: create .dev.vars with  SESSION_SECRET=some-long-random-string
