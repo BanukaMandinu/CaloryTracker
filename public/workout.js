@@ -11,30 +11,42 @@
   const E = (name, sets, reps, kind = 'reps', note = '') => ({ id: nid(), name, sets, reps: String(reps), kind, note });
 
   // Cycle order: plan Day 02 is the first workout and the cardio / bodyweight Day 01 is done last.
+  const TIPS = ['Rest 60–90 seconds between normal sets, and 2–3 minutes after heavy compound lifts.',
+    'Choose a weight that lets you finish the target reps with good form. When you can comfortably beat the target, add a little weight.',
+    'Keep your protein high and hold your calorie deficit while cutting.',
+    'Belly fat cannot be spot-reduced. Overall fat loss gradually reduces belly and lower-back fat.',
+    'Keep cardio moderate so it does not hurt your recovery from lifting.',
+    'If an exercise causes back or sciatica pain, stop and swap it. Do not push through pain.'];
+  // 6-day plan: 5 resistance days + 1 cardio day, Sunday is rest. The cycle follows the order below and skips Sunday.
   function seedPlan() {
-    return { v: 1, seeded: 'original', rest: [], days: [
-      { id: 'd02', name: 'Chest & shoulders', label: 'Plan Day 02', met: 5, weekday: '', exercises: [
-        E('Wide grip barbell decline press', 5, '15,12,12,12,12'), E('Flat bench press', 4, 12), E('Pec dec fly', 3, 12), E('Dumbbell incline press', 4, 12), E('Dumbbell pull over', 3, 12),
-        E('Dumbbell military press', 4, 10, 'reps', 'Superset with side lateral raise'), E('Side lateral raise', 4, 10, 'reps', 'Superset with military press'),
-        E('Dumbbell front raise', 4, 10, 'reps', 'Superset with bent over lateral raise'), E('Bent over lateral raise', 4, 10, 'reps', 'Superset with front raise'),
-        E('Abs exercises', 1, '10 min', 'time')] },
-      { id: 'd03', name: 'Back & legs', label: 'Plan Day 03', met: 5, weekday: '', exercises: [
-        E('Cable lat pull over', 6, '8,12,8,12,8,12'), E('Close mag grip lat pulldown', 4, 15), E('Dumbbell row', 3, 12), E('Smith machine shrugs', 3, 15), E('Dumbbell deadlift', 3, 12),
-        E('Leg curl', 3, 12), E('Barbell squats', 3, 15), E('Leg press', 3, 12), E('Machine calves', 4, 15)] },
-      { id: 'd04', name: 'Arms & abs', label: 'Plan Day 04', met: 5, weekday: '', exercises: [
-        E('Dumbbell decline fly', 4, 12), E('Wide decline push ups', 3, 12), E('Barbell curl', 5, '15,12,12,12,12'), E('Dumbbell hammer curl', 4, 12),
-        E('Rivers curl combination with wrist curl', 3, 12), E('EZ bar overhead tricep extension', 4, 12), E('Cable rope press down tricep', 3, 12), E('Abs exercises', 1, '10 min', 'time')] },
-      { id: 'd05', name: 'Chest, shoulders & core + cardio', label: 'Plan Day 05', met: 5, weekday: '', exercises: [
-        E('Barbell incline press', 3, '6-10'), E('Barbell decline press', 3, '8-10'), E('Pec deck', 3, '10-15'), E('Dumbbell / cable pullover', 3, '10-15', 'reps', '2-3 sets'),
-        E('Barbell overhead press', 3, '6-10'), E('Dumbbell lateral raise', 4, '12-15'), E('Rear delt fly / face pull', 3, '12-15'), E('Cable crunch', 3, '12-15'),
-        E('Leg raises', 3, '10-15'), E('Plank', 3, '45-60 sec', 'time'), E('Incline treadmill or cycling', 1, '20-30 min', 'time')] },
-      { id: 'd01', name: 'Cardio & bodyweight circuit', label: 'Plan Day 01', met: 8, weekday: '', exercises: [
-        E('Treadmill run', 1, '15 min', 'time'), E('Cycling', 1, '10 min', 'time'), E('Wide grip push ups combined with close grip', 3, 20), E('In and out squat', 3, 10),
-        E('Jumping jacks', 3, '60 sec', 'time'), E('Half burpees', 3, 10), E('High knees', 2, 20), E('Mountain climbers', 3, 20), E('High plank elbow to knee', 3, 20), E('Plank hold', 1, '60 sec', 'time')] }
+    const day = (id, label, name, tags, color, met, exercises, note = '') => ({ id, label, name, tags, color, met, weekday: '', note, exercises });
+    return { v: 2, seeded: 'v2', rest: [0], picks: {}, tips: TIPS, days: [
+      day('p1', 'Day 1 · Push', 'Chest + Shoulders + Triceps', ['Chest', 'Shoulders', 'Triceps'], 0, 5, [
+        E('Incline dumbbell press', 4, 12), E('Flat bench press', 4, 12), E('Wide-grip barbell decline press', 3, 12), E('Pec deck fly', 3, 12), E('Dumbbell pullover', 3, 12),
+        E('Seated dumbbell shoulder press', 3, 10), E('Dumbbell lateral raise', 3, '10-12'), E('Cable rope triceps pressdown', 3, 12), E('Abs exercises', 1, '10 min', 'time')]),
+      day('p2', 'Day 2 · Pull + legs', 'Back + Biceps + Legs', ['Back', 'Biceps', 'Legs'], 1, 5, [
+        E('Close-grip lat pulldown', 4, 15), E('Dumbbell row', 3, 12), E('Cable lat pullover', 3, 12), E('Barbell squat', 3, 15), E('Dumbbell deadlift', 3, 12),
+        E('Leg press', 3, 12), E('Leg curl', 3, 12), E('Machine calves', 4, 15), E('Barbell curl', 3, 12)]),
+      day('p3', 'Day 3 · Push', 'Chest + Shoulders + Triceps', ['Chest', 'Shoulders', 'Triceps'], 0, 5, [
+        E('Barbell incline press', 3, '8-10'), E('Dumbbell decline fly', 3, 12), E('Wide decline push-ups', 3, 12), E('Dumbbell lateral raise', 3, '12-15'), E('Face pulls', 3, '12-15'),
+        E('EZ-bar overhead triceps extension', 3, 12), E('Cable rope triceps pressdown', 3, 12), E('Abs exercises', 1, '10 min', 'time')]),
+      day('p4', 'Day 4 · Pull + legs', 'Back + Biceps + Legs', ['Back', 'Biceps', 'Legs'], 1, 5, [
+        E('Lat pulldown', 3, '10-12'), E('Seated cable row', 3, '10-12'), E('Dumbbell row', 2, '10-12'), E('Leg press', 3, 12), E('Leg curl', 3, 12),
+        E('Machine calves', 3, 15), E('Barbell curl', 4, 12), E('Dumbbell hammer curl', 4, 12), E('Reverse curl + wrist curl', 3, 12)]),
+      day('p5', 'Day 5 · Upper body', 'Chest + Arms + Shoulders', ['Chest', 'Arms', 'Shoulders'], 2, 5, [
+        E('Barbell incline press', 3, '8-10'), E('Pec deck fly', 3, '12-15'), E('Dumbbell pullover', 2, 12), E('Dumbbell lateral raise', 3, '12-15'), E('Face pulls / reverse pec deck', 3, '12-15'),
+        E('Dumbbell hammer curl', 3, 12), E('EZ-bar overhead triceps extension', 3, 12), E('Cable rope triceps pressdown', 2, 12), E('Abs exercises', 1, '10 min', 'time')],
+        'A moderate-volume chest session, so you are not too tired after Days 1 and 3.'),
+      day('p6', 'Day 6 · Cardio', 'Cardio + Conditioning', ['Cardio', 'Core'], 5, 7, [
+        E('Treadmill walking', 1, '30-40 min', 'time'), E('Cycling', 1, '20-30 min', 'time'), E('Jumping jacks', 3, '60 sec', 'time'), E('Half burpees', 3, 10), E('High knees', 3, 20),
+        E('Mountain climbers', 3, 20), E('High plank elbow-to-knee', 3, 20), E('Plank hold', 3, '60 sec', 'time'), E('Badminton', 1, '2-3 hours', 'time', 'Optional')])
     ] };
   }
+  // The owner account gets this plan. It replaces the earlier plan once (marked seeded 'v2'); after that your own edits are never overwritten.
   window.ensureWorkoutSeed = () => {
-    if (db.workout || !user?.email || user.email.toLowerCase() !== SEED_EMAIL) return;
+    if (!user?.email || user.email.toLowerCase() !== SEED_EMAIL) return;
+    if (db.workout && db.workout.seeded === 'v2') return;
+    if (db.workout && db.workout.seeded !== 'original') return; // a plan you built yourself is left alone
     db.workout = seedPlan(); save();
   };
 
@@ -116,6 +128,23 @@
   };
 
   // ---------- Workout page ----------
+  const colorOf = (d, i) => `var(--c${(Number.isInteger(d.color) ? d.color : i) % 6})`;
+  const typeOf = d => (String(d.label || '').split('·')[1] || '').trim();
+  const typeChip = d => typeOf(d) ? `<span class="tag">${esc(typeOf(d))}</span>` : '';
+  const mondayOf = iso => addDays(iso, -((wdOf(iso) + 6) % 7));
+
+  function weekRow(date) {
+    const w = W(), t = todayISO(), e = entryFor(date), done = e.done?.length ? e.done[e.done.length - 1] : null, d = e.day, isToday = date === t;
+    const di = d ? w.days.indexOf(d) : -1, past = date < t;
+    const doneDay = done && dayById(done.dayId), shown = d || doneDay, si = shown ? w.days.indexOf(shown) : -1;
+    const state = done ? `<span class="wstate ok">${ico('check')}Done</span>` : d ? `<span class="wstate plan">${d.exercises.length} exercises</span>` : past ? `<span class="wstate dim">–</span>` : `<span class="wstate dim">Rest</span>`;
+    const title = done ? done.dayName : d ? d.name : past ? 'Nothing logged' : 'Rest day';
+    const attr = shown ? `data-wk-open="${esc(shown.id)}" data-date="${date}"` : `data-wk-pick="${date}"`;
+    return `<button class="wrow${isToday ? ' today' : ''}${done ? ' isdone' : ''}${!shown ? ' rest' : ''}" style="--wc:${shown ? colorOf(shown, si) : 'var(--line)'}" ${attr} aria-label="${fmtDate(date)}: ${esc(title)}">
+      <span class="wdate"><small>${WD[wdOf(date)]}</small><b>${dnum(date)}</b></span>
+      <span class="wbody"><b>${esc(title)}</b>${shown ? `<span class="tags">${typeChip(shown)}</span>` : ''}</span>${isToday ? '<span class="wtoday">Today</span>' : ''}${state}</button>`;
+  }
+
   function renderWorkout() {
     const el = $('#view-workout');
     if (!hasPlan()) {
@@ -129,21 +158,33 @@
         <div class="row"><button class="btn pop" data-wk-start="${esc(te.day.id)}" data-date="${t}">${ico('dumbbell')}Start workout</button><button class="btn ghost" data-wk-markdone="${esc(te.day.id)}" data-date="${t}">${ico('check')}Mark done</button></div><button class="wk-change" data-wk-pick="${t}">Not this one? Change or skip today</button></div>`;
     else hero = `<div class="wk-hero rest"><small>${fmtLong(t)}</small><h2>Rest day</h2><p>Nothing planned. Recover well, or train anyway.</p><div class="row"><button class="btn pop" data-wk-pick="${t}">Choose a workout</button></div></div>`;
 
-    const days = [addDays(t, -1), ...Array.from({ length: 6 }, (_, i) => addDays(t, i))];
-    const strip = `<div class="card"><h2>This week</h2><div class="wk-strip">${days.map(d => { const e = entryFor(d), lbl = e.done?.length ? `<i class="ok">${ico('check')}</i>` : e.day ? `<i class="num">${w.days.indexOf(e.day) + 1}</i>` : `<i class="rest">${e.past ? '' : 'Rest'}</i>`;
-        return `<button class="wchip${d === t ? ' today' : ''}${e.done?.length ? ' done' : ''}" data-wk-pick="${d}" aria-label="${fmtDate(d)}"><small>${WD[wdOf(d)]}</small><b>${dnum(d)}</b>${lbl}</button>`; }).join('')}</div>
-        <p class="muted small">Tap any day to choose its workout, skip it, or mark it done. The number is the workout's place in your plan.</p></div>`;
+    const week = `<div class="card"><div class="card-h"><h2>This week</h2><span class="muted small">Tap a day for details</span></div><div class="wweek">${Array.from({ length: 7 }, (_, i) => weekRow(addDays(mondayOf(t), i))).join('')}</div></div>`;
 
-    const plan = `<div class="card"><div class="card-h"><h2>Your workouts</h2><button class="btn sm" data-wk-edit>${ico('pencil')}Edit</button></div>${w.days.map((d, i) => `<details class="wkday"><summary><span class="wk-n">${i + 1}</span><span class="wk-t"><b>${esc(d.name)}</b><small>${esc(d.label || '')}${d.label ? ' · ' : ''}${d.exercises.length} exercises${isFixed(d) ? ` · ${WDL[+d.weekday]}s` : ''}</small></span></summary>
-        <ul class="wk-prev">${d.exercises.map(e => `<li><span>${esc(e.name)}${e.note ? `<small>${esc(e.note)}</small>` : ''}</span><b>${esc(schemeText(e))}</b></li>`).join('')}</ul>
-        <div class="row"><button class="btn sm primary" data-wk-start="${esc(d.id)}" data-date="${t}">Start</button><button class="btn sm" data-wk-markdone="${esc(d.id)}" data-date="${t}">Mark done</button></div></details>`).join('')}</div>`;
+    const plan = `<div class="card"><div class="card-h"><h2>Your plan</h2><button class="btn sm" data-wk-edit>${ico('pencil')}Edit</button></div>
+      <div class="pgrid">${w.days.map((d, i) => `<button class="pcard" style="--wc:${colorOf(d, i)}" data-wk-open="${esc(d.id)}" data-date="${t}"><span class="pnum">${esc(d.label || `Day ${i + 1}`)}</span><b>${esc(d.name)}</b><span class="pmeta">${d.exercises.length} exercises · ~${usualMinutes(d)} min</span></button>`).join('')}</div>
+      <p class="muted small">Rest days: ${(w.rest || []).length ? w.rest.map(i => WDL[i]).join(', ') : 'none'}. Change them in Edit.</p></div>`;
+    const tips = w.tips?.length ? `<details class="card tips"><summary><b>Training tips</b></summary><ul>${w.tips.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : '';
     const recent = sortedSessions().slice(-8).reverse();
     const hist = `<div class="card"><h2>Recent sessions</h2>${recent.length ? recent.map(s => `<details class="wkday"><summary><span class="wk-t"><b>${esc(s.dayName)}</b><small>${fmtDate(s.date)} · ${s.minutes} min${doneSets(s) ? ` · ${doneSets(s)} sets` : ' · marked done'}${volumeOf(s) ? ` · ${r0(volumeOf(s))} kg` : ''}</small></span></summary>
         ${s.logs.map(l => `<div class="wk-log"><b>${esc(l.name)}</b><span>${l.sets.filter(x => x.done || x.w || x.r).map(x => l.kind === 'time' ? esc(x.r || 'done') : `${x.w || '–'}×${x.r || '–'}`).join(' · ') || '–'}</span></div>`).join('')}
         <div class="row"><button class="btn sm danger" data-wk-delsession="${esc(s.id)}">Delete</button></div></details>`).join('') : `<div class="empty">${ico('history')}<p>Finished sessions will appear here.</p></div>`}</div>`;
-    el.innerHTML = `<div class="wk-grid"><div class="wk-col">${hero}${strip}</div><div class="wk-col">${plan}${hist}</div></div>`;
+    el.innerHTML = `<div class="wk-grid"><div class="wk-col">${hero}${week}</div><div class="wk-col">${plan}${tips}${hist}</div></div>`;
   }
   window.renderWorkout = renderWorkout;
+
+  // ---------- one workout in detail (opened from the week list or the plan cards) ----------
+  let DT = null;
+  function renderDetail() {
+    const w = W(), d = dayById(DT.dayId), i = w.days.indexOf(d), e = entryFor(DT.date), past = DT.date < todayISO();
+    const doneHere = (e.done || []).find(s => s.dayId === d.id);
+    $('#wd-title').textContent = d.name;
+    $('#wd-body').innerHTML = `<div class="wd-top" style="--wc:${colorOf(d, i)}"><span class="pnum">${esc(d.label || `Day ${i + 1}`)}</span>
+        <p>${fmtLong(DT.date)} · ${d.exercises.length} exercises · about ${usualMinutes(d)} min · ~${r0(estKcal(d, DT.date))} kcal</p>${d.note ? `<p class="wd-note">${esc(d.note)}</p>` : ''}${doneHere ? `<p class="wd-done">${ico('check')} Done · ${doneHere.minutes} min</p>` : ''}</div>
+      <ol class="wd-list">${d.exercises.map(x => `<li><span class="wd-n">${d.exercises.indexOf(x) + 1}</span><span class="wd-t"><b>${esc(x.name)}</b>${x.note ? `<small>${esc(x.note)}</small>` : ''}</span><span class="wd-s">${esc(schemeText(x))}</span></li>`).join('')}</ol>
+      <div class="wd-actions"><button class="btn pop" data-wd-act="start">${ico('dumbbell')}${past ? 'Log this workout' : 'Start workout'}</button><button class="btn" data-wd-act="done">${ico('check')}Mark as done</button>
+        <button class="btn quiet" data-wd-act="change">${past ? 'Pick a different workout' : 'Change this day'}</button></div>`;
+  }
+  function openDetail(dayId, date) { if (!dayById(dayId)) { openPick(date); return; } DT = { dayId, date }; renderDetail(); $('#wk-detail').showModal(); }
 
   // ---------- choose a workout for a day (or skip it, or mark it done) ----------
   let PK = null;
@@ -264,6 +305,7 @@
           <button type="button" class="icon-btn sm" data-eact="delday" data-d="${i}" aria-label="Delete day">${ico('trash')}</button></div>
         <div class="grid-form"><label>Day of week<select data-f="${i}||weekday"><option value="">In the cycle</option>${WDL.map((n, k) => `<option value="${k}"${isFixed(d) && +d.weekday === k ? ' selected' : ''}>${n}s</option>`).join('')}</select></label>
           <label>Intensity<select data-f="${i}||met">${INTENSITY.map(([n, m]) => `<option value="${m}"${num(d.met) === m ? ' selected' : ''}>${n}</option>`).join('')}</select></label></div>
+        <div class="grid-form"><label>Muscles <span class="opt">comma separated</span><input data-f="${i}||tags" value="${esc((d.tags || []).join(', '))}" maxlength="60" placeholder="Chest, Triceps"></label><label>Colour<select data-f="${i}||color">${['Blue', 'Violet', 'Sky', 'Amber', 'Rose', 'Orange'].map((n, k) => `<option value="${k}"${(Number.isInteger(d.color) ? d.color : i) % 6 === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label></div>
         ${d.exercises.map((e, k) => `<div class="exrow"><input data-f="${i}|${k}|name" value="${esc(e.name)}" maxlength="80" placeholder="Exercise" aria-label="Exercise name">
             <div class="exrow-b"><label>Sets<input type="number" min="1" max="20" inputmode="numeric" data-f="${i}|${k}|sets" value="${esc(String(e.sets))}"></label><label>Reps<input data-f="${i}|${k}|reps" value="${esc(e.reps)}" placeholder="12 or 15,12" maxlength="40"></label>
               <label>Type<select data-f="${i}|${k}|kind"><option value="reps"${e.kind === 'reps' ? ' selected' : ''}>Reps</option><option value="time"${e.kind === 'time' ? ' selected' : ''}>Timed</option></select></label></div>
@@ -271,7 +313,7 @@
             <div class="exrow-c"><button type="button" class="icon-btn sm" data-eact="upex" data-d="${i}" data-e="${k}" aria-label="Move up"${k === 0 ? ' disabled' : ''}>${ico('chev', 'flip')}</button><button type="button" class="icon-btn sm" data-eact="downex" data-d="${i}" data-e="${k}" aria-label="Move down"${k === d.exercises.length - 1 ? ' disabled' : ''}>${ico('chev')}</button><button type="button" class="icon-btn sm" data-eact="delex" data-d="${i}" data-e="${k}" aria-label="Delete exercise">${ico('trash')}</button></div></div>`).join('')}
         <button type="button" class="btn sm" data-eact="addex" data-d="${i}">+ Add exercise</button></div>`).join('')}
       <button type="button" class="btn block" data-eact="addday">+ Add a day</button>
-      <div class="card ed-end"><div class="row"><button class="btn primary" data-eact="save">Save plan</button><button class="btn" data-eact="cancel">Cancel</button></div>${canReset() ? '<button type="button" class="btn quiet sm" data-eact="reset">Restore my original 5-day plan</button>' : ''}</div>`;
+      <div class="card ed-end"><div class="row"><button class="btn primary" data-eact="save">Save plan</button><button class="btn" data-eact="cancel">Cancel</button></div>${canReset() ? '<button type="button" class="btn quiet sm" data-eact="reset">Restore my 6-day plan</button>' : ''}</div>`;
     body.scrollTop = keep;
   }
   function savePlan() {
@@ -291,16 +333,24 @@
   document.body.insertAdjacentHTML('beforeend', `
     <dialog id="wk-session" class="sheet" aria-labelledby="ws-title"><div class="sheet-h"><b id="ws-title"></b><button class="icon-btn" data-wk-close="session" aria-label="Close">${ico('close')}</button></div><div class="sheet-body" id="ws-body"></div></dialog>
     <dialog id="wk-pick" class="pick" aria-labelledby="wp-title"><div class="pick-h"><b id="wp-title"></b><button class="icon-btn" data-wp-act="close" aria-label="Close">${ico('close')}</button></div><div id="wp-body"></div></dialog>
+    <dialog id="wk-detail" class="sheet" aria-labelledby="wd-title"><div class="sheet-h"><b id="wd-title"></b><button class="icon-btn" data-wd-act="close" aria-label="Close">${ico('close')}</button></div><div class="sheet-body" id="wd-body"></div></dialog>
     <dialog id="wk-editor" class="sheet" aria-labelledby="we-title"><div class="sheet-h"><b id="we-title">Edit workout plan</b><button class="icon-btn" data-eact="cancel" aria-label="Close">${ico('close')}</button></div><div class="sheet-body" id="we-body"></div></dialog>`);
   $('#wk-session').addEventListener('cancel', e => { e.preventDefault(); closeSession(); });
   $('#wk-editor').addEventListener('cancel', e => { e.preventDefault(); closeEditor(); });
   $('#wk-session').addEventListener('close', () => { S0 = null; });
   $('#wk-pick').addEventListener('close', () => { PK = null; });
+  $('#wk-detail').addEventListener('close', () => { DT = null; });
 
   document.addEventListener('click', e => {
     const t = e.target.closest('button,a'); if (!t) return;
     const d = t.dataset;
     if (d.wkStart) { openSession(d.wkStart, d.date || todayISO()); return; }
+    if (d.wkOpen) { openDetail(d.wkOpen, d.date || todayISO()); return; }
+    if (d.wdAct && DT) {
+      const act = d.wdAct, { dayId, date } = DT; $('#wk-detail').close();
+      if (act === 'start') openSession(dayId, date); else if (act === 'done') markDone(dayId, date); else if (act === 'change') openPick(date);
+      return;
+    }
     if (d.wkPick) { openPick(d.wkPick); return; }
     if (d.wkMarkdone) { markDone(d.wkMarkdone, d.date || todayISO()); return; }
     if (d.wkUndo) { deleteSession(d.wkUndo, true); return; }
@@ -312,7 +362,7 @@
       if (act === 'start') openSession(sel, date); else if (act === 'done') markDone(sel, date); else render();
       return;
     }
-    if (d.wkNew !== undefined) { db.workout = { v: 1, rest: [], days: [{ id: nid(), name: 'Day 1', label: '', met: 5, weekday: '', exercises: [E('', 3, 10)] }] }; save(); openEditor(); render(); return; }
+    if (d.wkNew !== undefined) { db.workout = { v: 1, rest: [], days: [{ id: nid(), name: 'Day 1', label: '', met: 5, weekday: '', exercises: [E('', 3, 10)], tags: [], color: 0 }] }; save(); openEditor(); render(); return; }
     if (d.wkEdit !== undefined) { openEditor(); return; }
     if (d.wkDelsession) { deleteSession(d.wkDelsession); return; }
     if (d.wkClose === 'session') { closeSession(); return; }
@@ -332,7 +382,7 @@
       else if (a === 'addex') { ED.days[di].exercises.push(E('', 3, 10)); renderEditor(); }
       else if (a === 'delex') { ED.days[di].exercises.splice(ei, 1); renderEditor(); }
       else if (a === 'upex') { mv(ED.days[di].exercises, ei, ei - 1); renderEditor(); } else if (a === 'downex') { mv(ED.days[di].exercises, ei, ei + 1); renderEditor(); }
-      else if (a === 'reset') { ask({ title: 'Restore your original plan?', text: 'This replaces everything with your original 5-day plan. Your logged sessions are kept.', ok: 'Restore' }).then(ok => { if (ok && ED) { ED = seedPlan(); renderEditor(); } }); }
+      else if (a === 'reset') { ask({ title: 'Restore your 6-day plan?', text: 'This replaces everything with your 6-day plan. Your logged sessions are kept.', ok: 'Restore' }).then(ok => { if (ok && ED) { ED = seedPlan(); renderEditor(); } }); }
     }
   });
   const onField = e => {
@@ -341,7 +391,7 @@
     if (t.dataset.s && S0) { S0[t.dataset.s] = t.value; sessionDirty = true; return; }
     if (t.dataset.f && ED) {
       const [di, ei, f] = t.dataset.f.split('|'), day = ED.days[+di];
-      if (ei === '') day[f] = f === 'met' ? +t.value : t.value; else day.exercises[+ei][f] = t.value;
+      if (ei === '') day[f] = f === 'met' || f === 'color' ? +t.value : f === 'tags' ? t.value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5) : t.value; else day.exercises[+ei][f] = t.value;
     }
   };
   document.addEventListener('input', onField); document.addEventListener('change', onField);

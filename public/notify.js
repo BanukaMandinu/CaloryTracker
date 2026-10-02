@@ -93,5 +93,19 @@
   };
   document.addEventListener('change', onChange);
 
-  window.renderNotify = () => { draw(); refresh().then(draw); };
+  // ---- install as an app ----
+  let installEvt = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; drawInstall(); });
+  window.addEventListener('appinstalled', () => { installEvt = null; drawInstall(); });
+  function drawInstall() {
+    const el = $('#install-card'); if (!el) return;
+    if (standalone()) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = '<h2>Install the app</h2>' + (isIOS
+      ? '<p class="muted">Put BM Calory Tracker on your iPhone like a normal app, full screen, with its own icon and reminders.</p><ol class="steps"><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share</b> button (the square with an arrow).</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open it from your Home Screen. Reminders can be turned on there.</li></ol>'
+      : installEvt ? '<p class="muted">Install it on this device for a full-screen app with its own icon and reminders.</p><button class="btn primary block" data-install>Install app</button>'
+      : '<p class="muted">Install it from your browser: open the menu and choose <b>Install app</b> (Chrome, Edge) or <b>Add to Home Screen</b> (Android).</p>');
+  }
+  document.addEventListener('click', e => { if (e.target.closest('[data-install]') && installEvt) { installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; drawInstall(); }); } });
+  window.renderNotify = () => { drawInstall(); draw(); refresh().then(draw); };
 })();

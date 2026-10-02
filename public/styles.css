@@ -689,3 +689,58 @@ dialog#ask{width:min(92vw,420px);padding:1.5rem}
 .nrow{flex-direction:row}
 .nrow .nlabel{text-align:left}
 .nrow select{min-width:7.8rem}
+
+/* ===== workout schedule v3: colour-coded week list, plan cards, detail sheet ===== */
+:root{--c0:#2d63e8;--c1:#8b5cf6;--c2:#0ea5e9;--c3:#d99a0b;--c4:#e0457b;--c5:#ff6a3d}
+:root[data-theme=dark]{--c0:#7ba5ff;--c1:#b79bff;--c2:#4cc2ff;--c3:#f5be55;--c4:#f183b5;--c5:#ff8a63}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--c0:#7ba5ff;--c1:#b79bff;--c2:#4cc2ff;--c3:#f5be55;--c4:#f183b5;--c5:#ff8a63}}
+.tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.tag{font-size:.72rem;font-weight:700;padding:.15rem .55rem;border-radius:999px;background:color-mix(in srgb,var(--wc,var(--accent)) 14%,transparent);color:var(--wc,var(--accent))}
+.wk-hero .tags{margin:0 0 .6rem}
+.wk-hero .tag{background:rgba(255,255,255,.18);color:#fff}
+.wweek{display:grid;gap:.5rem}
+.wrow{position:relative;display:grid;grid-template-columns:3.2rem 1fr auto;align-items:center;gap:.8rem;width:100%;text-align:left;padding:.7rem .9rem .7rem .7rem;border-radius:18px;border:1.5px solid var(--line);border-left:6px solid var(--wc);background:var(--surface);color:var(--text);font:inherit;cursor:pointer;transition:transform .12s,box-shadow .15s}
+.wrow:active{transform:scale(.985)}
+.wrow.today{border-color:var(--wc);box-shadow:0 0 0 3px color-mix(in srgb,var(--wc) 18%,transparent)}
+.wrow.rest{background:var(--surface2);border-left-color:var(--line)}
+.wrow.rest b{color:var(--muted);font-weight:600}
+.wdate{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.wdate small{font-size:.68rem;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.05em}
+.wdate b{font-family:var(--font-d);font-size:1.45rem}
+.wbody{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+.wbody>b{font-family:var(--font-d);font-size:1.02rem;line-height:1.2}
+.wstate{font-size:.78rem;font-weight:700;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:.25rem}
+.wstate.ok{color:var(--good)}
+.wstate.dim{opacity:.7}
+.wstate .i{width:1rem;height:1rem}
+.wrow.isdone{background:color-mix(in srgb,var(--wc) 7%,var(--surface))}
+.wtoday{position:absolute;top:-.55rem;right:.8rem;background:var(--wc);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:.12rem .55rem;border-radius:999px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.4rem 0 .8rem}
+.pcard{display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;text-align:left;padding:.9rem .9rem .8rem;border-radius:20px;border:1.5px solid var(--line);border-top:6px solid var(--wc);background:var(--surface);color:var(--text);font:inherit;cursor:pointer;min-width:0}
+.pcard:active{transform:scale(.97)}
+.pnum{font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--wc)}
+.pcard b{font-family:var(--font-d);font-size:1rem;line-height:1.2}
+.pmeta{font-size:.76rem;color:var(--muted);margin-top:auto}
+@media(max-width:380px){.pgrid{grid-template-columns:1fr}}
+details.tips ul{margin:.6rem 0 0;padding-left:1.2rem}
+details.tips li{margin:.45rem 0;color:var(--muted)}
+details.tips summary{padding:.2rem 0}
+.wd-top{border-left:6px solid var(--wc);padding:.2rem 0 .2rem 1rem;margin:.2rem 0 1rem}
+.wd-top p{margin:.5rem 0 0;color:var(--muted);font-size:.92rem}
+.wd-top .wd-note{color:var(--text);background:var(--surface);padding:.6rem .8rem;border-radius:12px}
+.wd-top .wd-done{color:var(--good);font-weight:700;display:flex;align-items:center;gap:.4rem}
+.wd-list{list-style:none;margin:0 0 1rem;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:20px}
+.wd-list li{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-top:1px solid var(--line)}
+.wd-list li:first-child{border-top:0}
+.wd-n{display:grid;place-items:center;flex:none;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--font-d);font-weight:800;font-size:.85rem}
+.wd-t{flex:1;min-width:0}
+.wd-t b{display:block;line-height:1.25}
+.wd-t small{display:block;color:var(--muted);font-size:.78rem}
+.wd-s{font-weight:800;color:var(--accent);white-space:nowrap;font-size:.92rem}
+.wd-actions{display:grid;gap:.5rem}
+.wd-actions .btn{width:100%}
+.steps{padding-left:1.2rem;margin:.6rem 0 0}.steps li{margin:.45rem 0}
+
+@media(max-width:520px){.wstate.plan{display:none}.wrow{grid-template-columns:3rem 1fr auto;gap:.7rem}}
+.wk-hero .row .btn{white-space:nowrap;font-size:.95rem}
+.wrow .tags{min-height:0}
